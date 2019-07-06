@@ -943,26 +943,26 @@ public class BodyResolver {
     ) {
         PreliminaryDeclarationVisitor.Companion.createForDeclaration(function, trace, languageVersionSettings);
         ReceiverParameterDescriptor receiverParameterDescriptor = functionDescriptor.getDispatchReceiverParameter();
-        //if (receiverParameterDescriptor instanceof LazyClassReceiverParameterDescriptor) {
-        //    LazyClassReceiverParameterDescriptor lazyClassReceiverParameterDescriptor = (LazyClassReceiverParameterDescriptor) receiverParameterDescriptor;
-        //    DeclarationDescriptor descriptor = lazyClassReceiverParameterDescriptor.getContainingDeclaration();
-        //    if (descriptor instanceof LazyClassDescriptor) {
-        //        LazyClassDescriptor lazyClassDescriptor = (LazyClassDescriptor) descriptor;
-        //        MemberScope memberScope = lazyClassDescriptor.getUnsubstitutedMemberScope();
-        //        if (memberScope instanceof LazyClassMemberScope) {
-        //            LazyClassMemberScope lazyClassMemberScope = (LazyClassMemberScope) memberScope;
-        //            ClassConstructorDescriptor constructor = lazyClassMemberScope.getPrimaryConstructor();
-        //            if (constructor != null) {
-        //                List<ValueParameterDescriptor> members = constructor.getValueParameters();
-        //                for (ValueParameterDescriptor member : members) {
-        //                    if (member.isCompanion()) {
-        //                        scope = getScopeForCompanionValue(functionDescriptor, scope, member);
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
+        if (receiverParameterDescriptor instanceof LazyClassReceiverParameterDescriptor) {
+            LazyClassReceiverParameterDescriptor lazyClassReceiverParameterDescriptor = (LazyClassReceiverParameterDescriptor) receiverParameterDescriptor;
+            DeclarationDescriptor descriptor = lazyClassReceiverParameterDescriptor.getContainingDeclaration();
+            if (descriptor instanceof LazyClassDescriptor) {
+                LazyClassDescriptor lazyClassDescriptor = (LazyClassDescriptor) descriptor;
+                MemberScope memberScope = lazyClassDescriptor.getUnsubstitutedMemberScope();
+                if (memberScope instanceof LazyClassMemberScope) {
+                    LazyClassMemberScope lazyClassMemberScope = (LazyClassMemberScope) memberScope;
+                    ClassConstructorDescriptor constructor = lazyClassMemberScope.getPrimaryConstructor();
+                    if (constructor != null) {
+                        List<ValueParameterDescriptor> members = constructor.getValueParameters();
+                        for (ValueParameterDescriptor member : members) {
+                            if (member.isCompanion()) {
+                                scope = getScopeForCompanionValue(functionDescriptor, scope, member);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         LexicalScope innerScope = FunctionDescriptorUtil.getFunctionInnerScope(scope, functionDescriptor, trace, overloadChecker);
         List<KtParameter> valueParameters = function.getValueParameters();
         List<ValueParameterDescriptor> valueParameterDescriptors = functionDescriptor.getValueParameters();

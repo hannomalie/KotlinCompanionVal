@@ -1,6 +1,6 @@
 // TARGET_BACKEND: JVM
 // WITH_RUNTIME
-// FILE: CompanionVal.kt
+// FILE: CompanionValAsArgInFunctions.kt
 
 package com.companionval
 

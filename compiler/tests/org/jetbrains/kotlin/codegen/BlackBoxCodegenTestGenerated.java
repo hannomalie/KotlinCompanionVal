@@ -4404,6 +4404,11 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/companionval"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JVM, true);
         }
 
+        @TestMetadata("ConstructorArgInClasses.kt")
+        public void testConstructorArgInClasses() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/ConstructorArgInClasses.kt");
+        }
+
         @TestMetadata("InFunctions.kt")
         public void testInFunctions() throws Exception {
             runTest("compiler/testData/codegen/box/companionval/InFunctions.kt");
