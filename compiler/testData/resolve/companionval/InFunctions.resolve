@@ -1,0 +1,9 @@
+~A~class A {
+  ~A.foo~fun foo() = a
+  ~A.a~val a : `kotlin::Int`Int
+}
+
+fun test(companion a: A) : Unit {
+    `A.foo`foo()
+    `A.a`a
+}

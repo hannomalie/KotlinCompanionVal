@@ -2793,7 +2793,12 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
 
     @NotNull
     public StackValue generateExtensionReceiver(@NotNull CallableDescriptor descriptor) {
-        ReceiverParameterDescriptor parameter = descriptor.getExtensionReceiverParameter();
+        ParameterDescriptor parameter = descriptor.getExtensionReceiverParameter();
+        if (descriptor.getContainingDeclaration() instanceof ValueParameterDescriptor &&
+            ((ValueParameterDescriptor) (descriptor.getContainingDeclaration())).isCompanion()) {
+            parameter = (ParameterDescriptor) descriptor.getContainingDeclaration();
+        }
+
         if (myFrameMap.getIndex(parameter) != -1) {
             KotlinType type = parameter.getReturnType();
             return StackValue.local(
@@ -2801,13 +2806,20 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
                     typeMapper.mapType(type),
                     type
             );
+        } else if (parameter instanceof ValueParameterDescriptor) {
+            if (((ValueParameterDescriptor) parameter).isCompanion()) {
+                return StackValue.field(
+                        typeMapper.mapType(parameter),
+                        typeMapper.mapType(((CallableDescriptor) parameter.getContainingDeclaration()).getReturnType()),
+                        parameter.getName().asString(),
+                        false,
+                        StackValue.LOCAL_0);
+            }
         }
-
         StackValue result = context.generateReceiver(descriptor, state, false);
         if (result == null) {
             throw new NullPointerException("Extension receiver was null for callable " + descriptor);
         }
-
         return result;
     }
 

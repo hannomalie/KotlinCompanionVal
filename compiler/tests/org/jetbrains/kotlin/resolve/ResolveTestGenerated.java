@@ -267,6 +267,24 @@ public class ResolveTestGenerated extends AbstractResolveTest {
         }
     }
 
+    @TestMetadata("compiler/testData/resolve/companionval")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Companionval extends AbstractResolveTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInCompanionval() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/resolve/companionval"), Pattern.compile("^(.+)\\.resolve$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("InFunctions.resolve")
+        public void testInFunctions() throws Exception {
+            runTest("compiler/testData/resolve/companionval/InFunctions.resolve");
+        }
+    }
+
     @TestMetadata("compiler/testData/resolve/delegatedProperty")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

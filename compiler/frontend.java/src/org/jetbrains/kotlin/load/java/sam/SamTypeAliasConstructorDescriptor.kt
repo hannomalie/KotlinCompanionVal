@@ -44,3 +44,6 @@ class SamTypeAliasConstructorDescriptorImpl(
     override val baseDescriptorForSynthetic: JavaClassDescriptor
         get() = samInterfaceConstructorDescriptor.baseDescriptorForSynthetic
 }
+
+fun foo(a: Int) {}
+@JvmName("fooWithReceiver") fun Int.foo() {}
