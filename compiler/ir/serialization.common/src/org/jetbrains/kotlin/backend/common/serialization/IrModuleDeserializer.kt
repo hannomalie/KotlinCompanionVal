@@ -876,7 +876,8 @@ abstract class IrModuleDeserializer(
                 deserializeIrType(proto.type),
                 varargElementType,
                 proto.isCrossinline,
-                proto.isNoinline
+                proto.isNoinline,
+                proto.isCompanion
             ).apply {
                 defaultValue = if (proto.hasDefaultValue()) {
                     val expression = deserializeExpression(proto.defaultValue)

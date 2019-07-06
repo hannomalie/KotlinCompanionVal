@@ -148,7 +148,7 @@ fun IrValueParameter.copyTo(
     defaultValueCopy?.patchDeclarationParents(irFunction)
     return IrValueParameterImpl(
         startOffset, endOffset, origin, symbol,
-        name, index, type, varargElementType, isCrossinline, isNoinline
+        name, index, type, varargElementType, isCrossinline, isNoinline, isCompanion
     ).also {
         descriptor.bind(it)
         it.parent = irFunction
@@ -354,7 +354,8 @@ fun IrClass.createImplicitParameterDeclarationWithWrappedDescriptor() {
         type = this.symbol.typeWith(this.typeParameters.map { it.defaultType }),
         varargElementType = null,
         isCrossinline = false,
-        isNoinline = false
+        isNoinline = false,
+        isCompanion = false
     ).also { valueParameter ->
         thisReceiverDescriptor.bind(valueParameter)
         valueParameter.parent = this
@@ -392,6 +393,7 @@ fun IrClass.createParameterDeclarations() {
             symbol.typeWith(typeParameters.map { it.defaultType }),
             null,
             false,
+            false,
             false
         ).apply {
             it.bind(this)
@@ -411,6 +413,7 @@ fun IrFunction.createDispatchReceiverParameter(origin: IrDeclarationOrigin? = nu
         0,
         parentAsClass.defaultType,
         null,
+        false,
         false,
         false
     ).apply {

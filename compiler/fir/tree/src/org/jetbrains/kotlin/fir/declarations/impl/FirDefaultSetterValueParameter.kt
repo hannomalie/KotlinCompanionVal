@@ -40,6 +40,8 @@ class FirDefaultSetterValueParameter(
 
     override val isVararg = false
 
+    override val isCompanion: Boolean = false
+
     override val isVar: Boolean = false
     override val isVal: Boolean = false
 

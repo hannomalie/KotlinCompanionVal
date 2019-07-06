@@ -56,7 +56,7 @@ abstract class ReflectJavaMember : ReflectJavaElement(), ReflectJavaAnnotationOw
                 getOrNull(i + shift) ?: error("No parameter with index $i+$shift (name=$name type=$type) in $this@ReflectJavaMember")
             }
             val isParamVararg = isVararg && i == parameterTypes.lastIndex
-            result.add(ReflectJavaValueParameter(type, parameterAnnotations[i], name, isParamVararg))
+            result.add(ReflectJavaValueParameter(type, parameterAnnotations[i], name, isParamVararg, false))
         }
         return result
     }

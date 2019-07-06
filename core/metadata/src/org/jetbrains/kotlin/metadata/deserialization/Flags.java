@@ -66,6 +66,7 @@ public class Flags {
     public static final BooleanFlagField DECLARES_DEFAULT_VALUE = FlagField.booleanAfter(HAS_ANNOTATIONS);
     public static final BooleanFlagField IS_CROSSINLINE = FlagField.booleanAfter(DECLARES_DEFAULT_VALUE);
     public static final BooleanFlagField IS_NOINLINE = FlagField.booleanAfter(IS_CROSSINLINE);
+    public static final BooleanFlagField IS_COMPANION = FlagField.booleanAfter(IS_NOINLINE);
 
     // Accessors
 

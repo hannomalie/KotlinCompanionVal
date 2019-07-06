@@ -55,6 +55,7 @@ class BinaryJavaValueParameter(
 ) : JavaValueParameter, MapBasedJavaAnnotationOwner {
     override val annotations: MutableCollection<JavaAnnotation> = ContainerUtil.newSmartList()
     override val annotationsByFqName by buildLazyValueForMap()
+    override val isCompanion = false
 
     override var name: Name? = null
 

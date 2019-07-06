@@ -208,7 +208,8 @@ fun ParameterDescriptor.copyAsValueParameter(newOwner: CallableDescriptor, index
         isCrossinline = false,
         isNoinline = false,
         varargElementType = null,
-        source = source
+        source = source,
+        isCompanion = false
     )
     else -> throw Error("Unexpected parameter descriptor: $this")
 }

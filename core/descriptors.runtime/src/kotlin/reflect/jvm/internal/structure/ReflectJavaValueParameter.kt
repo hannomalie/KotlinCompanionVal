@@ -24,7 +24,8 @@ class ReflectJavaValueParameter(
     override val type: ReflectJavaType,
     private val reflectAnnotations: Array<Annotation>,
     private val reflectName: String?,
-    override val isVararg: Boolean
+    override val isVararg: Boolean,
+    override val isCompanion: Boolean
 ) : ReflectJavaElement(), JavaValueParameter {
     override val annotations: List<ReflectJavaAnnotation>
         get() = reflectAnnotations.getAnnotations()

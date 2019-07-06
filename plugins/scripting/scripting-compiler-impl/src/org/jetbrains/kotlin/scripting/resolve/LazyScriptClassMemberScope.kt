@@ -54,7 +54,7 @@ class LazyScriptClassMemberScope(
                         Annotations.EMPTY,
                         Name.identifier(param.first),
                         param.second,
-                        false, false, false, null, SourceElement.NO_SOURCE
+                        false, false, false, null, SourceElement.NO_SOURCE, false
                     )
                 }
             val parameters = baseConstructorDescriptor.valueParameters.map { it.copy(constructorDescriptor, it.name, it.index) } +

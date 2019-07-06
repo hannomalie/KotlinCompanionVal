@@ -198,7 +198,8 @@ internal fun JavaValueParameter.toFirValueParameters(
     return FirJavaValueParameter(
         session, name ?: Name.special("<anonymous Java parameter>"),
         returnTypeRef = type.toFirJavaTypeRef(session, javaTypeParameterStack),
-        isVararg = isVararg
+        isVararg = isVararg,
+        isCompanion = isCompanion
     ).apply {
         addAnnotationsFrom(session, this@toFirValueParameters, javaTypeParameterStack)
     }

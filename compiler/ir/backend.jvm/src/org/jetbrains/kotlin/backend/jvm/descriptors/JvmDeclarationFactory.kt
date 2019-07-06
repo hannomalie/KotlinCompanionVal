@@ -112,7 +112,8 @@ class JvmDeclarationFactory(
                 type = outerThisType,
                 varargElementType = null,
                 isCrossinline = false,
-                isNoinline = false
+                isNoinline = false,
+                isCompanion = false
             ).also {
                 outerThisDescriptor.bind(it)
                 it.parent = this

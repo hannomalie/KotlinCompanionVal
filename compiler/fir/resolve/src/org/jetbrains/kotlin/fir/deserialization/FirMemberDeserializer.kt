@@ -300,7 +300,8 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
                 defaultValue(flags),
                 Flags.IS_CROSSINLINE.get(flags),
                 Flags.IS_NOINLINE.get(flags),
-                proto.varargElementType(c.typeTable) != null
+                proto.varargElementType(c.typeTable) != null,
+                Flags.IS_COMPANION.get(flags)
             ).apply {
                 annotations += c.annotationDeserializer.loadValueParameterAnnotations(proto, c.nameResolver)
             }

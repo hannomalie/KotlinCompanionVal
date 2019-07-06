@@ -99,7 +99,7 @@ internal fun KtClassOrObject.generateCopyFunction(
                     FirQualifiedAccessExpressionImpl(session, ktParameter).apply {
                         calleeReference = FirResolvedCallableReferenceImpl(session, ktParameter, name, firProperty.symbol)
                     },
-                    isCrossinline = false, isNoinline = false, isVararg = false
+                    isCrossinline = false, isNoinline = false, isVararg = false, isCompanion = false
                 )
             }
 

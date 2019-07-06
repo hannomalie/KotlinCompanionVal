@@ -450,7 +450,8 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
                                     defaultValue = null,
                                     isCrossinline = false,
                                     isNoinline = false,
-                                    isVararg = false
+                                    isVararg = false,
+                                    isCompanion = false
                                 )
                             else -> null
                         }
@@ -642,7 +643,8 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
                             defaultValue = null,
                             isCrossinline = false,
                             isNoinline = false,
-                            isVararg = false
+                            isVararg = false,
+                            isCompanion = false
                         )
                     else -> null
                 }

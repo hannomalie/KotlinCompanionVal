@@ -85,7 +85,7 @@ private fun PropertyDescriptorImpl.makePropertySetterDescriptor() =
                 false, /* isNoinline = */
                 false,
                 null,
-                SourceElement.NO_SOURCE
+                SourceElement.NO_SOURCE, false
             )
         )
     }

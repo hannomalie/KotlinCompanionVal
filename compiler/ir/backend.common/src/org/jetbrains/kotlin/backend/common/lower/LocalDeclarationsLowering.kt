@@ -574,7 +574,7 @@ class LocalDeclarationsLowering(
                 val p = capturedValue.owner
                 IrValueParameterImpl(
                     p.startOffset, p.endOffset, BOUND_VALUE_PARAMETER, IrValueParameterSymbolImpl(parameterDescriptor),
-                    suggestNameForCapturedValue(p), i, p.type, null, isCrossinline = false, isNoinline = false
+                    suggestNameForCapturedValue(p), i, p.type, null, isCrossinline = false, isNoinline = false, isCompanion = false
                 ).also {
                     parameterDescriptor.bind(it)
                     it.parent = newDeclaration

@@ -101,7 +101,7 @@ class FirClassSubstitutionScope(
                             FirValueParameterImpl(
                                 session, psi,
                                 name, this.returnTypeRef.withReplacedConeType(session, newType),
-                                defaultValue, isCrossinline, isNoinline, isVararg,
+                                defaultValue, isCrossinline, isNoinline, isVararg, isCompanion,
                                 FirVariableSymbol(valueParameter.symbol.callableId)
                             )
                         }

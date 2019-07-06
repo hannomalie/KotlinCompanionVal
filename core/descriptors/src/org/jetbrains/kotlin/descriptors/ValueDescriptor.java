@@ -26,4 +26,5 @@ public interface ValueDescriptor extends CallableDescriptor {
     @Override
     @NotNull
     DeclarationDescriptor getContainingDeclaration();
+
 }

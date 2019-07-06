@@ -315,7 +315,7 @@ internal class Fir2IrVisitor(
                     IrValueParameterImpl(
                         startOffset, endOffset, thisOrigin, symbol,
                         Name.special("<this>"), -1, thisType,
-                        varargElementType = null, isCrossinline = false, isNoinline = false
+                        varargElementType = null, isCrossinline = false, isNoinline = false, isCompanion = false
                     ).setParentByParentStack()
                 }
             }
@@ -561,7 +561,7 @@ internal class Fir2IrVisitor(
                                         startOffset, endOffset, IrDeclarationOrigin.DEFINED, symbol,
                                         Name.special("<set-?>"), 0, propertyType,
                                         varargElementType = null,
-                                        isCrossinline = false, isNoinline = false
+                                        isCrossinline = false, isNoinline = false, isCompanion = false
                                     ).setParentByParentStack()
                                 }
                             }

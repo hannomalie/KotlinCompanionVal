@@ -74,7 +74,7 @@ open class ParcelableResolveExtension : SyntheticResolveExtension {
 
         private fun FunctionDescriptor.makeValueParameter(name: String, type: KotlinType, index: Int): ValueParameterDescriptor {
             return ValueParameterDescriptorImpl(
-                    this, null, index, Annotations.EMPTY, Name.identifier(name), type, false, false, false, null, this.source)
+                    this, null, index, Annotations.EMPTY, Name.identifier(name), type, false, false, false, null, this.source, false)
         }
     }
 

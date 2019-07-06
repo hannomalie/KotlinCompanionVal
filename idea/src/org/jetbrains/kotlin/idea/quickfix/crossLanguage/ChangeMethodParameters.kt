@@ -126,7 +126,7 @@ internal class ChangeMethodParameters(
                         this, null, index, Annotations.EMPTY,
                         Name.identifier(parameter.name),
                         parameter.ktType, declaresDefaultValue = false,
-                        isCrossinline = false, isNoinline = false, varargElementType = null, source = SourceElement.NO_SOURCE
+                        isCrossinline = false, isNoinline = false, varargElementType = null, source = SourceElement.NO_SOURCE, isCompanion = false
                     )
                 },
                 functionDescriptor.returnType,

@@ -14,8 +14,9 @@ class FirJavaValueParameter(
     session: FirSession,
     name: Name,
     returnTypeRef: FirJavaTypeRef,
-    isVararg: Boolean
+    isVararg: Boolean,
+    isCompanion: Boolean
 ) : FirValueParameterImpl(
     session, psi = null, name = name, returnTypeRef = returnTypeRef,
-    defaultValue = null, isCrossinline = false, isNoinline = false, isVararg = isVararg
+    defaultValue = null, isCrossinline = false, isNoinline = false, isVararg = isVararg, isCompanion = isCompanion
 )

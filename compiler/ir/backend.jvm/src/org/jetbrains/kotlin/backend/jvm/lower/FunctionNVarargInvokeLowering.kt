@@ -84,7 +84,8 @@ private class FunctionNVarargInvokeLowering(var context: JvmBackendContext) : Cl
                 type = context.irBuiltIns.arrayClass.typeWith(),
                 varargElementType = context.irBuiltIns.anyClass.typeWith(),
                 isCrossinline = false,
-                isNoinline = false
+                isNoinline = false,
+                isCompanion = false
             ).apply {
                 varargParameterDescriptor.bind(this)
             }

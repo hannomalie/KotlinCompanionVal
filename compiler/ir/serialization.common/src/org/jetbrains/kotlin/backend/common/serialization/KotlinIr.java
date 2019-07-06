@@ -53203,6 +53203,8 @@ public final class KotlinIr {
      */
     boolean getIsNoinline();
 
+    boolean isCompanion();
+
     /**
      * <code>optional .org.jetbrains.kotlin.backend.common.serialization.IrExpression default_value = 8;</code>
      */
@@ -53466,6 +53468,9 @@ public final class KotlinIr {
       return isCrossinline_;
     }
 
+    @Override
+    public boolean isCompanion() { return false; }
+
     public static final int IS_NOINLINE_FIELD_NUMBER = 7;
     private boolean isNoinline_;
     /**
@@ -53717,6 +53722,8 @@ public final class KotlinIr {
       private Builder() {
         maybeForceBuilderInitialization();
       }
+      @Override
+      public boolean isCompanion() { return false; }
 
       private void maybeForceBuilderInitialization() {
       }

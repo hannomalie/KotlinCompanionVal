@@ -46,4 +46,7 @@ class SymbolBasedValueParameter(
     override val type: JavaType
         get() = SymbolBasedType.create(element.asType(), javac)
 
+    override val isCompanion: Boolean
+        get() = false
+
 }

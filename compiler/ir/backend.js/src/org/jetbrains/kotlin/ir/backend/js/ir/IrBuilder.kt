@@ -62,7 +62,8 @@ object JsIrBuilder {
             type,
             null,
             isCrossinline = false,
-            isNoinline = false
+            isNoinline = false,
+            isCompanion = false
         ).also {
             descriptor.bind(it)
         }

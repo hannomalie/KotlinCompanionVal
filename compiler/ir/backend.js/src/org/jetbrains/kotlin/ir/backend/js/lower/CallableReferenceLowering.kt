@@ -461,7 +461,8 @@ class CallableReferenceLowering(val context: JsIrBackendContext) : FileLoweringP
                 p.type,
                 p.varargElementType,
                 p.isCrossinline,
-                p.isNoinline
+                p.isNoinline,
+                p.isCompanion
             ).also {
                 descriptor.bind(it)
                 it.parent = factoryDeclaration

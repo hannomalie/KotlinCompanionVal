@@ -17,6 +17,7 @@ class IrValueParameterBuilder : IrDeclarationBuilder() {
     var varargElementType: IrType? = null
     var isCrossInline = false
     var isNoinline = false
+    var isCompanion = false
 
     fun updateFrom(from: IrValueParameter) {
         super.updateFrom(from)

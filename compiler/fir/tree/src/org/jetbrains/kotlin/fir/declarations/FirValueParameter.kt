@@ -21,6 +21,8 @@ interface FirValueParameter : @VisitedSupertype FirDeclaration, FirTypedDeclarat
 
     val isVararg: Boolean
 
+    val isCompanion: Boolean
+
     val defaultValue: FirExpression?
 
     override val symbol: FirVariableSymbol

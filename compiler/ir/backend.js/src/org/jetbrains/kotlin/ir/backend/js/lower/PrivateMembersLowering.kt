@@ -170,6 +170,7 @@ class PrivateMembersLowering(val context: JsIrBackendContext) : ClassLoweringPas
             function.dispatchReceiverParameter!!.type,
             null,
             false,
+            false,
             false
         ).also {
             thisDesc.bind(it)

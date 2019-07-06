@@ -210,7 +210,7 @@ class ChangeMemberFunctionSignatureFix private constructor(
                 ValueParameterDescriptorImpl(
                     descriptor, null, index,
                     parameter.annotations, parameter.name, parameter.returnType!!, parameter.declaresDefaultValue(),
-                    parameter.isCrossinline, parameter.isNoinline, parameter.varargElementType, SourceElement.NO_SOURCE
+                    parameter.isCrossinline, parameter.isNoinline, parameter.varargElementType, SourceElement.NO_SOURCE, parameter.isCompanion
                 )
             }.toList()
 

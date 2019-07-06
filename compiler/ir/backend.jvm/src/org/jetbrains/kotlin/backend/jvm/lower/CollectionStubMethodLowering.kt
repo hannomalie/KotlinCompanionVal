@@ -113,7 +113,8 @@ private class CollectionStubMethodLowering(val context: JvmBackendContext) : Cla
             type.substitute(substitutionMap),
             varargElementType?.substitute(substitutionMap),
             isCrossinline,
-            isNoinline
+            isNoinline,
+            isCompanion
         ).apply {
             descriptor.bind(this)
             parent = target

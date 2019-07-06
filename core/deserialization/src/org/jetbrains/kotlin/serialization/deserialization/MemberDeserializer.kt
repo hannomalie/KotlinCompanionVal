@@ -419,7 +419,7 @@ class MemberDeserializer(private val c: DeserializationContext) {
                 Flags.IS_CROSSINLINE.get(flags),
                 Flags.IS_NOINLINE.get(flags),
                 proto.varargElementType(c.typeTable)?.let { c.typeDeserializer.type(it) },
-                SourceElement.NO_SOURCE
+                SourceElement.NO_SOURCE, false
             )
         }.toList()
     }

@@ -29,6 +29,7 @@ interface IrValueParameter : IrValueDeclaration, IrSymbolDeclaration<IrValuePara
     val varargElementType: IrType?
     val isCrossinline: Boolean
     val isNoinline: Boolean
+    val isCompanion: Boolean
 
     var defaultValue: IrExpressionBody?
 

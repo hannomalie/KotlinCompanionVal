@@ -325,7 +325,8 @@ private class BridgeLowering(val context: JvmBackendContext) : ClassLoweringPass
             type.eraseTypeParameters(),
             varargElementType?.eraseTypeParameters(),
             isCrossinline,
-            isNoinline
+            isNoinline,
+            isCompanion
         ).apply {
             descriptor.bind(this)
             parent = target

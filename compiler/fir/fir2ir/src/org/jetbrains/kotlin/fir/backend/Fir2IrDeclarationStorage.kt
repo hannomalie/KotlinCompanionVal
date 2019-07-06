@@ -91,7 +91,7 @@ class Fir2IrDeclarationStorage(
             IrValueParameterImpl(
                 startOffset, endOffset, thisOrigin, symbol,
                 Name.special("<this>"), -1, thisType,
-                varargElementType = null, isCrossinline = false, isNoinline = false
+                varargElementType = null, isCrossinline = false, isNoinline = false, isCompanion = false
             ).apply { this.parent = parent }
         }
         leaveScope(descriptor)
@@ -241,7 +241,7 @@ class Fir2IrDeclarationStorage(
                 IrValueParameterImpl(
                     startOffset, endOffset, thisOrigin, symbol,
                     Name.special("<this>"), -1, thisType,
-                    varargElementType = null, isCrossinline = false, isNoinline = false
+                    varargElementType = null, isCrossinline = false, isNoinline = false, isCompanion = false
                 ).apply { this.parent = parent }
             }
         }
@@ -415,7 +415,7 @@ class Fir2IrDeclarationStorage(
                 IrValueParameterImpl(
                     startOffset, endOffset, origin, symbol,
                     valueParameter.name, index, type,
-                    null, valueParameter.isCrossinline, valueParameter.isNoinline
+                    null, valueParameter.isCrossinline, valueParameter.isNoinline, valueParameter.isCompanion
                 ).apply {
                     descriptor.bind(this)
                 }

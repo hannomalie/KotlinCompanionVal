@@ -53,4 +53,7 @@ class TreeBasedValueParameter(
 
     override val isVararg: Boolean
         get() = tree.modifiers.flags and Flags.VARARGS != 0L
+
+    override val isCompanion: Boolean
+        get() = false
 }

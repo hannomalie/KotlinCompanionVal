@@ -270,7 +270,8 @@ fun <D : FunctionDescriptor> getOrCreateJvmSuspendFunctionView(
             function.getContinuationParameterTypeOfSuspendFunction(isReleaseCoroutines),
         declaresDefaultValue = false, isCrossinline = false,
         isNoinline = false, varargElementType = null,
-        source = SourceElement.NO_SOURCE
+        source = SourceElement.NO_SOURCE,
+        isCompanion = false
     )
 
     return function.createCustomCopy {

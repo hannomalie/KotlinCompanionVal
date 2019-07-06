@@ -174,7 +174,7 @@ fun IrValueParameterBuilder.build(): IrValueParameter {
     return IrValueParameterImpl(
         startOffset, endOffset, origin,
         IrValueParameterSymbolImpl(wrappedDescriptor),
-        name, index, type, varargElementType, isCrossInline, isNoinline
+        name, index, type, varargElementType, isCrossInline, isNoinline, isCompanion
     ).also {
         wrappedDescriptor.bind(it)
     }

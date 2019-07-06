@@ -530,6 +530,7 @@ private fun IrFunction.valueParameter(index: Int, name: Name, type: IrType): IrV
         type,
         null,
         false,
+        false,
         false
     ).also {
         parameterDescriptor.bind(it)

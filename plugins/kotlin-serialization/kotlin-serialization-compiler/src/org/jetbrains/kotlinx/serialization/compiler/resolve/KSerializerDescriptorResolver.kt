@@ -302,7 +302,8 @@ object KSerializerDescriptorResolver {
             consParams.add(
                 ValueParameterDescriptorImpl(
                     functionDescriptor, null, i++, Annotations.EMPTY, Name.identifier("seen$i"), functionDescriptor.builtIns.intType, false,
-                    false, false, null, functionDescriptor.source
+                    false, false, null, functionDescriptor.source,
+                    isCompanion = false
                 )
             )
         }
@@ -310,14 +311,16 @@ object KSerializerDescriptorResolver {
             consParams.add(
                 ValueParameterDescriptorImpl(
                     functionDescriptor, null, i++, prop.annotations, prop.name, prop.type.makeNullableIfNotPrimitive(), false, false,
-                    false, null, functionDescriptor.source
+                    false, null, functionDescriptor.source,
+                    isCompanion = false
                 )
             )
         }
         consParams.add(
             ValueParameterDescriptorImpl(
                 functionDescriptor, null, i, Annotations.EMPTY, SerialEntityNames.dummyParamName, markerType, false,
-                false, false, null, functionDescriptor.source
+                false, false, null, functionDescriptor.source,
+                isCompanion = false
             )
         )
 
@@ -352,7 +355,8 @@ object KSerializerDescriptorResolver {
 
             ValueParameterDescriptorImpl(
                 constrDesc, null, index, Annotations.EMPTY, Name.identifier("$typeArgPrefix$index"), pType,
-                false, false, false, null, constrDesc.source
+                false, false, false, null, constrDesc.source,
+                isCompanion = false
             )
         }
 
@@ -396,7 +400,8 @@ object KSerializerDescriptorResolver {
                     isCrossinline = false,
                     isNoinline = false,
                     varargElementType = null,
-                    source = parentFunction.source
+                    source = parentFunction.source,
+                    isCompanion = false
                 )
             )
 
@@ -471,7 +476,8 @@ object KSerializerDescriptorResolver {
                 isCrossinline = false,
                 isNoinline = false,
                 varargElementType = null,
-                source = f.source
+                source = f.source,
+                isCompanion = false
             )
         )
 
@@ -488,7 +494,8 @@ object KSerializerDescriptorResolver {
                 isCrossinline = false,
                 isNoinline = false,
                 varargElementType = null,
-                source = f.source
+                source = f.source,
+                isCompanion = false
             )
         )
 
@@ -505,7 +512,8 @@ object KSerializerDescriptorResolver {
                 isCrossinline = false,
                 isNoinline = false,
                 varargElementType = null,
-                source = f.source
+                source = f.source,
+                isCompanion = false
             )
         )
 

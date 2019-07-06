@@ -174,6 +174,7 @@ open class WrappedValueParameterDescriptor(
     override val varargElementType get() = owner.varargElementType?.toKotlinType()
     override fun isConst() = false
     override fun isVar() = false
+    override val isCompanion: Boolean get() = owner.isCompanion
 
     override fun getContainingDeclaration() = (owner.parent as IrFunction).descriptor
     override fun getType() = owner.type.toKotlinType()

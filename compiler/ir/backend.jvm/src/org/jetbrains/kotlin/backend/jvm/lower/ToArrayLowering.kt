@@ -92,7 +92,8 @@ private class ToArrayLowering(private val context: JvmBackendContext) : ClassLow
                 type = irClass.defaultType,
                 varargElementType = null,
                 isCrossinline = false,
-                isNoinline = false
+                isNoinline = false,
+                isCompanion = false
             ).apply {
                 parent = irFunction
             }
@@ -107,7 +108,8 @@ private class ToArrayLowering(private val context: JvmBackendContext) : ClassLow
                     varargElementType = null,
                     type = substitutedArrayType,
                     isCrossinline = false,
-                    isNoinline = false
+                    isNoinline = false,
+                    isCompanion = false
                 ).apply {
                     valueParameterDescriptor.bind(this)
                     parent = irFunction
@@ -158,7 +160,8 @@ private class ToArrayLowering(private val context: JvmBackendContext) : ClassLow
                 type = irClass.defaultType,
                 varargElementType = null,
                 isCrossinline = false,
-                isNoinline = false
+                isNoinline = false,
+                isCompanion = false
             ).apply {
                 parent = irFunction
             }
@@ -245,7 +248,8 @@ private class ToArrayLowering(private val context: JvmBackendContext) : ClassLow
                     irBuiltIns.collectionClass.owner.defaultType,
                     varargElementType = null,
                     isCrossinline = false,
-                    isNoinline = false
+                    isNoinline = false,
+                    isCompanion = false
                 ).apply {
                     collectionParameterDescriptor.bind(this)
                     parent = irFunction
@@ -263,7 +267,8 @@ private class ToArrayLowering(private val context: JvmBackendContext) : ClassLow
                         arrayType,
                         varargElementType = null,
                         isCrossinline = false,
-                        isNoinline = false
+                        isNoinline = false,
+                        isCompanion = false
                     ).apply {
                         arrayParameterDescriptor.bind(this)
                         parent = irFunction

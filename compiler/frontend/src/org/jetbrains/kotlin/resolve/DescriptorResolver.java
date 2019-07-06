@@ -306,9 +306,14 @@ public class DescriptorResolver {
     ) {
         KotlinType varargElementType = null;
         KotlinType variableType = type;
+        boolean isCompanion = false;
+
         if (valueParameter.hasModifier(VARARG_KEYWORD)) {
             varargElementType = type;
             variableType = getVarargParameterType(type);
+        }
+        if (valueParameter.hasModifier(COMPANION_KEYWORD)) {
+            isCompanion = true;
         }
 
         Annotations valueParameterAnnotations = resolveValueParameterAnnotations(scope, valueParameter, trace, additionalAnnotations);
@@ -373,7 +378,8 @@ public class DescriptorResolver {
                 valueParameter.hasModifier(NOINLINE_KEYWORD),
                 varargElementType,
                 KotlinSourceElementKt.toSourceElement(valueParameter),
-                destructuringVariables
+                destructuringVariables,
+                isCompanion
         );
 
         trace.record(BindingContext.VALUE_PARAMETER, valueParameter, valueParameterDescriptor);

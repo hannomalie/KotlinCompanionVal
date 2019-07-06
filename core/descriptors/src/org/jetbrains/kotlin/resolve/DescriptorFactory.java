@@ -153,7 +153,8 @@ public class DescriptorFactory {
                 /* isCrossinline = */ false,
                 /* isNoinline = */ false,
                 null,
-                enumClass.getSource()
+                enumClass.getSource(),
+                false
         );
         return valueOf.initialize(null, null, Collections.<TypeParameterDescriptor>emptyList(),
                                   Collections.singletonList(parameterDescriptor), enumClass.getDefaultType(),

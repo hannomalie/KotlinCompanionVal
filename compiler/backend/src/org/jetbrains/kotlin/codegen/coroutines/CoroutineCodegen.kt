@@ -101,7 +101,8 @@ abstract class AbstractCoroutineCodegen(
             type,
             false, false,
             false,
-            null, SourceElement.NO_SOURCE
+            null, SourceElement.NO_SOURCE,
+            false
         )
 
     override fun generateConstructor(): Method {

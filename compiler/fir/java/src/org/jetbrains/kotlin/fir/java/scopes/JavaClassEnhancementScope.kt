@@ -176,7 +176,7 @@ class JavaClassEnhancementScope(
                 FirValueParameterImpl(
                     this@JavaClassEnhancementScope.session, psi,
                     this.name, newTypeRef,
-                    defaultValue ?: newDefaultValue, isCrossinline, isNoinline, isVararg
+                    defaultValue ?: newDefaultValue, isCrossinline, isNoinline, isVararg, isCompanion
                 ).apply {
                     annotations += valueParameter.annotations
                 }

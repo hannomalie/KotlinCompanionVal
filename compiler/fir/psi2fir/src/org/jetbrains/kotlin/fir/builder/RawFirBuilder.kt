@@ -256,7 +256,8 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 } else null,
                 isCrossinline = hasModifier(CROSSINLINE_KEYWORD),
                 isNoinline = hasModifier(NOINLINE_KEYWORD),
-                isVararg = isVarArg
+                isVararg = isVarArg,
+                isCompanion = hasModifier(COMPANION_KEYWORD)
             )
             extractAnnotationsTo(firValueParameter)
             return firValueParameter
@@ -668,7 +669,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                         val multiParameter = FirValueParameterImpl(
                             this@RawFirBuilder.session, valueParameter, Name.special("<destruct>"),
                             FirImplicitTypeRefImpl(this@RawFirBuilder.session, multiDeclaration),
-                            defaultValue = null, isCrossinline = false, isNoinline = false, isVararg = false
+                            defaultValue = null, isCrossinline = false, isNoinline = false, isVararg = false, isCompanion = false
                         )
                         destructuringBlock = generateDestructuringBlock(
                             this@RawFirBuilder.session,

@@ -103,4 +103,7 @@ public class JavaValueParameterImpl extends JavaElementImpl<PsiParameter>
     public boolean isVararg() {
         return getPsi().isVarArgs();
     }
+
+    @Override
+    public boolean isCompanion() { return false; }
 }

@@ -218,7 +218,7 @@ abstract class LazyJavaScope(protected val c: LazyJavaResolverContext) : MemberS
                 /* isCrossinline = */ false,
                 /* isNoinline = */ false,
                 varargElementType,
-                c.components.sourceElementFactory.source(javaParameter)
+                c.components.sourceElementFactory.source(javaParameter), false
             )
         }.toList()
         return ResolvedValueParameters(descriptors, synthesizedNames)

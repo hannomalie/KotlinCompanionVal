@@ -154,7 +154,8 @@ class FunctionInvokeDescriptor private constructor(
                     /* isCrossinline = */ false,
                     /* isNoinline = */ false,
                     /* varargElementType = */ null,
-                    SourceElement.NO_SOURCE
+                    SourceElement.NO_SOURCE,
+                    false
             )
         }
     }

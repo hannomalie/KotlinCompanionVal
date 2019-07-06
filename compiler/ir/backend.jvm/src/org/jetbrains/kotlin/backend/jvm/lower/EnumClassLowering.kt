@@ -171,7 +171,8 @@ private class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringP
                 type = context.irBuiltIns.stringType,
                 varargElementType = null,
                 isCrossinline = false,
-                isNoinline = false
+                isNoinline = false,
+                isCompanion = false
             ).apply {
                 descriptor.bind(this)
                 parent = constructor
@@ -189,7 +190,8 @@ private class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringP
                 type = context.irBuiltIns.intType,
                 varargElementType = null,
                 isCrossinline = false,
-                isNoinline = false
+                isNoinline = false,
+                isCompanion = false
             ).apply {
                 descriptor.bind(this)
                 parent = constructor

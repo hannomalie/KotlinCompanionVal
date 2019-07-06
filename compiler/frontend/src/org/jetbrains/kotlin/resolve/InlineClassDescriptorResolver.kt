@@ -137,7 +137,7 @@ object InlineClassDescriptorResolver {
             Annotations.EMPTY,
             name,
             inlinedValue.type,
-            false, false, false, null, SourceElement.NO_SOURCE
+            false, false, false, null, SourceElement.NO_SOURCE, false
         )
     }
 }

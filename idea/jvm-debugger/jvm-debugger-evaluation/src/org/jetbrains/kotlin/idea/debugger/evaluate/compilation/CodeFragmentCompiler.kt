@@ -189,7 +189,8 @@ class CodeFragmentCompiler(private val executionContext: ExecutionContext) {
                 isCrossinline = false,
                 isNoinline = false,
                 varargElementType = null,
-                source = SourceElement.NO_SOURCE
+                source = SourceElement.NO_SOURCE,
+                isCompanion = false
             )
         }
 

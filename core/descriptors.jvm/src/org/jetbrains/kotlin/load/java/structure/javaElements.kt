@@ -130,6 +130,7 @@ interface JavaValueParameter : JavaAnnotationOwner {
     val name: Name?
     val type: JavaType
     val isVararg: Boolean
+    val isCompanion: Boolean
 }
 
 interface JavaTypeParameter : JavaClassifier {
