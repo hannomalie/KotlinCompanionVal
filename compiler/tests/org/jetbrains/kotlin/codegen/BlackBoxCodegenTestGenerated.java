@@ -4418,6 +4418,11 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
         public void testPrivateFieldInClasses() throws Exception {
             runTest("compiler/testData/codegen/box/companionval/PrivateFieldInClasses.kt");
         }
+
+        @TestMetadata("ShadowedCompanionFieldInClasses.kt")
+        public void testShadowedCompanionFieldInClasses() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/ShadowedCompanionFieldInClasses.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/compatibility")
