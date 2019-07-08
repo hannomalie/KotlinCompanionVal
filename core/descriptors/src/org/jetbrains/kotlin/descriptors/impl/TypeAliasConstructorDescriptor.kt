@@ -109,6 +109,8 @@ class TypeAliasConstructorDescriptorImpl private constructor(
     override fun getOriginal(): TypeAliasConstructorDescriptor =
         super.getOriginal() as TypeAliasConstructorDescriptor
 
+    override fun isCompanion() = false
+
     override fun substitute(substitutor: TypeSubstitutor): TypeAliasConstructorDescriptor? {
         //    class C<T>(val x: T)
         //    typealias A<Q> = C<List<Q>>

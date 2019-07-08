@@ -31,4 +31,6 @@ public interface MemberDescriptor extends DeclarationDescriptorNonRoot, Declarat
     boolean isActual();
 
     boolean isExternal();
+
+    boolean isCompanion();
 }

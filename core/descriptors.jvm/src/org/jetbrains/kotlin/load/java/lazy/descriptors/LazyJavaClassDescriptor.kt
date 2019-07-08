@@ -95,6 +95,7 @@ class LazyJavaClassDescriptor(
     override fun isData() = false
     override fun isInline() = false
     override fun isCompanionObject() = false
+    override fun isCompanion() = false
     override fun isExpect() = false
     override fun isActual() = false
 

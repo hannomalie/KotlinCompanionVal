@@ -82,6 +82,8 @@ class FunctionInvokeDescriptor private constructor(
 
     override fun isTailrec(): Boolean = false
 
+    override fun isCompanion() = false
+
     private fun replaceParameterNames(parameterNames: List<Name?>): FunctionDescriptor {
         val indexShift = valueParameters.size - parameterNames.size
         assert(indexShift == 0 || indexShift == 1) // indexShift == 1 for extension function type

@@ -259,6 +259,11 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     public boolean isActual() {
         return isActual;
     }
+    
+    @Override
+    public boolean isCompanion() {
+        return false;
+    }
 
     @Override
     @SuppressWarnings("unchecked")

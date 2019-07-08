@@ -4413,6 +4413,11 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
         public void testInFunctions() throws Exception {
             runTest("compiler/testData/codegen/box/companionval/InFunctions.kt");
         }
+
+        @TestMetadata("PrivateFieldInClasses.kt")
+        public void testPrivateFieldInClasses() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/PrivateFieldInClasses.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/compatibility")

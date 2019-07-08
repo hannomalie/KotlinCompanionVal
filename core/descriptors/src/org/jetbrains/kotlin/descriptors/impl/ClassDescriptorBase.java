@@ -58,6 +58,9 @@ public abstract class ClassDescriptorBase extends AbstractClassDescriptor {
         return isExternal;
     }
 
+    @Override
+    public boolean isCompanion() { return false; }
+
     @NotNull
     @Override
     public DeclarationDescriptor getContainingDeclaration() {

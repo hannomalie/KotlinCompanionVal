@@ -97,6 +97,7 @@ class FunctionClassDescriptor(
     override fun isExpect() = false
     override fun isActual() = false
     override fun isExternal() = false
+    override fun isCompanion() = false
     override val annotations: Annotations get() = Annotations.EMPTY
     override fun getSource(): SourceElement = SourceElement.NO_SOURCE
     override fun getSealedSubclasses() = emptyList<ClassDescriptor>()

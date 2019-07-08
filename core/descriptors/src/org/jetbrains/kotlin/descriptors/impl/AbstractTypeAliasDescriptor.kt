@@ -80,6 +80,8 @@ abstract class AbstractTypeAliasDescriptor(
 
     override fun isExternal() = false
 
+    override fun isCompanion() = false
+
     override fun getTypeConstructor(): TypeConstructor =
         typeConstructor
 

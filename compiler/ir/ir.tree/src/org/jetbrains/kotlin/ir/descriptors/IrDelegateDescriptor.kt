@@ -64,7 +64,8 @@ abstract class IrDelegateDescriptorBase(
         /* isExpect = */ false,
         /* isActual = */ false,
         /* isExternal = */ false,
-        /* isDelegated = */ true
+        /* isDelegated = */ true,
+        /* isCompanion = */ true
     ) {
     init {
         setType(delegateType, emptyList(), (containingDeclaration as? ClassDescriptor)?.thisAsReceiverParameter, null)

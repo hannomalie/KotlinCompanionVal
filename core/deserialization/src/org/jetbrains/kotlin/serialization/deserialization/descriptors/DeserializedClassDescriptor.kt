@@ -104,6 +104,8 @@ class DeserializedClassDescriptor(
 
     override fun isCompanionObject(): Boolean = Flags.CLASS_KIND.get(classProto.flags) == ProtoBuf.Class.Kind.COMPANION_OBJECT
 
+    override fun isCompanion() = Flags.IS_COMPANION.get(classProto.flags)
+
     private fun computePrimaryConstructor(): ClassConstructorDescriptor? {
         if (kind.isSingleton) {
             return DescriptorFactory.createPrimaryConstructorForObject(this, SourceElement.NO_SOURCE).apply {

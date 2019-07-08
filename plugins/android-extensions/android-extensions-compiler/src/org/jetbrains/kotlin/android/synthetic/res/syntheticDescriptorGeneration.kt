@@ -96,21 +96,22 @@ private fun genProperty(
         errorType: String?
 ): PropertyDescriptor {
     val property = object : AndroidSyntheticProperty, PropertyDescriptorImpl(
-            containingDeclaration,
-            null,
-            Annotations.EMPTY,
-            Modality.FINAL,
-            Visibilities.PUBLIC,
-            false,
-            Name.identifier(resource.id.name),
-            CallableMemberDescriptor.Kind.SYNTHESIZED,
-            sourceElement,
+        containingDeclaration,
+        null,
+        Annotations.EMPTY,
+        Modality.FINAL,
+        Visibilities.PUBLIC,
+        false,
+        Name.identifier(resource.id.name),
+        CallableMemberDescriptor.Kind.SYNTHESIZED,
+        sourceElement,
             /* lateInit = */ false,
             /* isConst = */ false,
             /* isExpect = */ false,
             /* isActual = */ false,
             /* isExternal = */ false,
-            /* isDelegated = */ false
+            /* isDelegated = */ false,
+            /* isCompanion = */ false
     ) {
         override val errorType = errorType
         override val shouldBeCached = type.shouldBeCached

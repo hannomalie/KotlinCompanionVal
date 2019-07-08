@@ -360,6 +360,7 @@ open class WrappedSimpleFunctionDescriptor(
     override fun getName() = owner.name
     override fun getVisibility() = owner.visibility
     override fun getReturnType() = owner.returnType.toKotlinType()
+    override fun isCompanion() = false
 
     override fun getDispatchReceiverParameter() = owner.dispatchReceiverParameter?.run {
         (containingDeclaration as ClassDescriptor).thisAsReceiverParameter
@@ -499,6 +500,8 @@ open class WrappedClassConstructorDescriptor(
 
     override fun isInline() = owner.isInline
 
+    override fun isCompanion() = false
+
     override fun isHiddenForResolutionEverywhereBesideSupercalls(): Boolean {
         TODO("not implemented")
     }
@@ -575,6 +578,8 @@ open class WrappedClassDescriptor(
     override fun isData() = owner.isData
 
     override fun isInline() = owner.isInline
+
+    override fun isCompanion() = false // TODO: This is not right, use owner and add isCompanionVal
 
     override fun getThisAsReceiverParameter() = owner.thisReceiver?.descriptor as ReceiverParameterDescriptor
 
@@ -682,6 +687,7 @@ open class WrappedEnumEntryDescriptor(
     override fun getVisibility() = Visibilities.DEFAULT_VISIBILITY
 
     override fun isCompanionObject() = false
+    override fun isCompanion() = false
 
     override fun isData() = false
 
@@ -788,6 +794,7 @@ open class WrappedPropertyDescriptor(
     override fun getOriginal() = this
 
     override fun isExpect() = false
+    override fun isCompanion() = false
 
     override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor =
         throw UnsupportedOperationException("Wrapped descriptors SHOULD NOT be substituted")
@@ -896,6 +903,8 @@ open class WrappedFieldDescriptor(
     override fun getOriginal() = this
 
     override fun isExpect() = false
+
+    override fun isCompanion() = false
 
     override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor =
         throw UnsupportedOperationException("Wrapped descriptors SHOULD NOT be substituted")

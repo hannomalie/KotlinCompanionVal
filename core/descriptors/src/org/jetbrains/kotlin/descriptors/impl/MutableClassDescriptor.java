@@ -104,6 +104,9 @@ public class MutableClassDescriptor extends ClassDescriptorBase {
     }
 
     @Override
+    public boolean isCompanion() { return false; }
+
+    @Override
     public boolean isExpect() {
         return false;
     }

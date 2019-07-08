@@ -99,6 +99,8 @@ class IrSimpleBuiltinOperatorDescriptorImpl(
     override fun hashCode(): Int {
         return (containingDeclaration.hashCode() * 31 + name.hashCode()) * 31 + valueParameters.map { it.type }.hashCode()
     }
+
+    override fun isCompanion() = false
 }
 
 class IrBuiltinValueParameterDescriptorImpl(

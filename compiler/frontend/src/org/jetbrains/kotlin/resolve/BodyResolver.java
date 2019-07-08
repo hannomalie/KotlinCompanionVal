@@ -30,10 +30,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
 import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
-import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor;
-import org.jetbrains.kotlin.descriptors.impl.LazyClassReceiverParameterDescriptor;
-import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl;
-import org.jetbrains.kotlin.descriptors.impl.SyntheticFieldDescriptor;
+import org.jetbrains.kotlin.descriptors.impl.*;
 import org.jetbrains.kotlin.diagnostics.Errors;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.psi.*;
@@ -961,6 +958,15 @@ public class BodyResolver {
                         }
                     }
                 }
+
+                for (CallableMemberDescriptor member : lazyClassDescriptor.getDeclaredCallableMembers()) {
+                    if((member instanceof PropertyDescriptor)) {
+                        PropertyDescriptor propertyDescriptor = (PropertyDescriptor) member;
+                        if(propertyDescriptor.isCompanion()) {
+                            scope = getScopeForCompanionValue(functionDescriptor, scope, propertyDescriptor, lazyClassDescriptor);
+                        }
+                    }
+                }
             }
         }
         LexicalScope innerScope = FunctionDescriptorUtil.getFunctionInnerScope(scope, functionDescriptor, trace, overloadChecker);
@@ -1035,6 +1041,37 @@ public class BodyResolver {
                                    valueParameterDescriptor.getReturnType(),
                                    Modality.FINAL,
                                    valueParameterDescriptor.getVisibility());
+        innerScope = new LexicalScopeImpl(innerScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE);
+        return innerScope;
+    }
+
+    @NotNull
+    private LexicalScope getScopeForCompanionValue(
+            @NotNull FunctionDescriptor functionDescriptor,
+            LexicalScope innerScope,
+            PropertyDescriptor memberDescriptor,
+            LazyClassDescriptor lazyClassDescriptor
+    ) {
+        AnonymousFunctionDescriptor ownerDescriptor = new AnonymousFunctionDescriptor(memberDescriptor,
+                                                                                      memberDescriptor.getAnnotations(),
+                                                                                      CallableMemberDescriptor.Kind.DECLARATION,
+                                                                                      memberDescriptor.getSource(),
+                                                                                      false);
+        ExtensionReceiver extensionReceiver = new ExtensionReceiver(ownerDescriptor,
+                                                                    memberDescriptor.getType(),
+                                                                    null);
+
+        ReceiverParameterDescriptor extensionReceiverParamDescriptor = new ReceiverParameterDescriptorImpl(ownerDescriptor,
+                                                                                                           extensionReceiver,
+                                                                                                           ownerDescriptor.getAnnotations());
+
+        ownerDescriptor.initialize(extensionReceiverParamDescriptor,
+                                   null,
+                                   memberDescriptor.getTypeParameters(),
+                                   memberDescriptor.getValueParameters(),
+                                   memberDescriptor.getReturnType(),
+                                   Modality.FINAL,
+                                   memberDescriptor.getVisibility());
         innerScope = new LexicalScopeImpl(innerScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE);
         return innerScope;
     }

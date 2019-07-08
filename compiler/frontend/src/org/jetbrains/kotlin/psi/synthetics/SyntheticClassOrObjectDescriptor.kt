@@ -76,6 +76,7 @@ class SyntheticClassOrObjectDescriptor(
     override fun getVisibility() = visibility
     override fun getKind() = kind
     override fun isCompanionObject() = isCompanionObject
+    override fun isCompanion() = false
     override fun isInner() = false
     override fun isData() = false
     override fun isInline() = false

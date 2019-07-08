@@ -46,6 +46,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     private final boolean isActual;
     private final boolean isExternal;
     private final boolean isDelegated;
+    private final boolean isCompanion;
 
     private final SubstitutingScopeProvider substitutingScopeProvider;
 
@@ -73,10 +74,11 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             boolean isExpect,
             boolean isActual,
             boolean isExternal,
-            boolean isDelegated
+            boolean isDelegated,
+            boolean isCompanion
     ) {
         this(containingDeclaration, original, annotations, modality, visibility, isVar, name, kind, source,
-             lateInit, isConst, isExpect, isActual, isExternal, isDelegated, SubstitutingScopeProvider.Companion.getDEFAULT());
+             lateInit, isConst, isExpect, isActual, isExternal, isDelegated, isCompanion, SubstitutingScopeProvider.Companion.getDEFAULT());
     }
 
     protected PropertyDescriptorImpl(
@@ -95,7 +97,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             boolean isActual,
             boolean isExternal,
             boolean isDelegated,
-            @NotNull SubstitutingScopeProvider substitutingScopeProvider
+            boolean isCompanion, @NotNull SubstitutingScopeProvider substitutingScopeProvider
     ) {
         super(containingDeclaration, annotations, name, null, isVar, source);
         this.modality = modality;
@@ -108,6 +110,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         this.isActual = isActual;
         this.isExternal = isExternal;
         this.isDelegated = isDelegated;
+        this.isCompanion = isCompanion;
         this.substitutingScopeProvider = substitutingScopeProvider;
     }
 
@@ -126,10 +129,11 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             boolean isExpect,
             boolean isActual,
             boolean isExternal,
-            boolean isDelegated
+            boolean isDelegated,
+            boolean isCompanion
     ) {
         return create(containingDeclaration, annotations, modality, visibility, isVar, name, kind, source,
-                      lateInit, isConst, isExpect, isActual, isExternal, isDelegated, SubstitutingScopeProvider.Companion.getDEFAULT());
+                      lateInit, isConst, isExpect, isActual, isExternal, isDelegated, isCompanion, SubstitutingScopeProvider.Companion.getDEFAULT());
     }
 
     @NotNull
@@ -148,18 +152,19 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             boolean isActual,
             boolean isExternal,
             boolean isDelegated,
+            boolean isCompanion,
             @NotNull SubstitutingScopeProvider substitutingScopeProvider
     ) {
         return new PropertyDescriptorImpl(containingDeclaration, null, annotations,
                                           modality, visibility, isVar, name, kind, source, lateInit, isConst,
-                                          isExpect, isActual, isExternal, isDelegated, substitutingScopeProvider);
+                                          isExpect, isActual, isExternal, isDelegated, isCompanion, substitutingScopeProvider);
     }
 
     @NotNull
     public PropertyDescriptorImpl getCopy() {
         return new PropertyDescriptorImpl(getContainingDeclaration(), original, getAnnotations(),
                                           modality, visibility, isVar(), getName(), kind, getSource(), lateInit, isConst,
-                                          isExpect, isActual, isExternal, isDelegated, substitutingScopeProvider);
+                                          isExpect, isActual, isExternal, isDelegated, isCompanion, substitutingScopeProvider);
     }
 
     public void setType(
@@ -548,7 +553,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     ) {
         return new PropertyDescriptorImpl(
                 newOwner, original, getAnnotations(), newModality, newVisibility, isVar(), newName, kind, SourceElement.NO_SOURCE,
-                isLateInit(), isConst(), isExpect(), isActual(), isExternal(), isDelegated(), substitutingScopeProvider
+                isLateInit(), isConst(), isExpect(), isActual(), isExternal(), isDelegated(), isCompanion, substitutingScopeProvider
         );
     }
 
@@ -578,6 +583,9 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     public boolean isActual() {
         return isActual;
     }
+
+    @Override
+    public boolean isCompanion() { return isCompanion; }
 
     @Override
     @Nullable

@@ -66,6 +66,7 @@ class NotFoundClasses(private val storageManager: StorageManager, private val mo
         override fun isInner() = isInner
 
         override fun isCompanionObject() = false
+        override fun isCompanion() = false
         override fun isData() = false
         override fun isInline() = false
         override fun isExpect() = false

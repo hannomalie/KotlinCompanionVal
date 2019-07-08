@@ -229,6 +229,9 @@ public class LazySubstitutingClassDescriptor implements ClassDescriptor {
     }
 
     @Override
+    public boolean isCompanion() { return original.isCompanion(); }
+
+    @Override
     public boolean isExpect() {
         return original.isExpect();
     }

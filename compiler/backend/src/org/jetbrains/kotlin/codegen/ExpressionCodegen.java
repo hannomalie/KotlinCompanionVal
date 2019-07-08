@@ -2815,7 +2815,24 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
                         false,
                         StackValue.LOCAL_0);
             }
+        } else if (parameter.getContainingDeclaration().getContainingDeclaration() instanceof PropertyDescriptor) {
+            PropertyDescriptor propertyDescriptor = (PropertyDescriptor) parameter.getContainingDeclaration().getContainingDeclaration();
+            ClassDescriptor owner = (ClassDescriptor) propertyDescriptor.getContainingDeclaration();
+
+            if(propertyDescriptor.isCompanion()) {
+                return StackValue.field(
+                        typeMapper.mapType(propertyDescriptor),
+                        typeMapper.mapType(owner),
+                        propertyDescriptor.getName().asString(),
+                        false,
+                        StackValue.LOCAL_0);
+            }
         }
+
+        //throw new IllegalStateException(parameter.toString() +
+        //                                "\n" + parameter.getContainingDeclaration().toString()+
+        //                                "\n" + parameter.getContainingDeclaration().getContainingDeclaration().toString());
+
         StackValue result = context.generateReceiver(descriptor, state, false);
         if (result == null) {
             throw new NullPointerException("Extension receiver was null for callable " + descriptor);

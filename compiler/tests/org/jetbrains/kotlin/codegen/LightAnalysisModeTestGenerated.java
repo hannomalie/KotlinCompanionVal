@@ -4413,6 +4413,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         public void testInFunctions() throws Exception {
             runTest("compiler/testData/codegen/box/companionval/InFunctions.kt");
         }
+
+        @TestMetadata("PrivateFieldInClasses.kt")
+        public void testPrivateFieldInClasses() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/PrivateFieldInClasses.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/compatibility")

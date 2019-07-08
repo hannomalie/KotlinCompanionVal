@@ -27,8 +27,8 @@ class SimpleSyntheticPropertyDescriptor(
     Name.identifier(name),
     CallableMemberDescriptor.Kind.SYNTHESIZED,
     owner.source,
-    false, false, false, false, false, false
-    ) {
+    false, false, false, false, false, false, false
+) {
 
     private val _backingField = FieldDescriptorImpl(Annotations.EMPTY, this)
 

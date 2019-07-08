@@ -918,6 +918,7 @@ public class DescriptorResolver {
                 modifierList != null && PsiUtilsKt.hasActualModifier(modifierList),
                 modifierList != null && modifierList.hasModifier(KtTokens.EXTERNAL_KEYWORD),
                 propertyInfo.getHasDelegate(),
+                modifierList != null && modifierList.hasModifier(COMPANION_KEYWORD),
                 new SubstitutingScopeProviderImpl(languageVersionSettings)
         );
 
@@ -1274,6 +1275,7 @@ public class DescriptorResolver {
                 false,
                 classDescriptor.isExpect(),
                 modifierList != null && PsiUtilsKt.hasActualModifier(modifierList),
+                false,
                 false,
                 false
         );

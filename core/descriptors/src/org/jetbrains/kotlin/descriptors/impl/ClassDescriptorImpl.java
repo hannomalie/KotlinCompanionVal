@@ -149,6 +149,9 @@ public class ClassDescriptorImpl extends ClassDescriptorBase {
     }
 
     @Override
+    public boolean isCompanion() { return false; }
+
+    @Override
     public String toString() {
         return "class " + getName();
     }

@@ -108,4 +108,6 @@ public class PropertySetterDescriptorImpl extends PropertyAccessorDescriptorImpl
         return this.original;
     }
 
+    @Override
+    public boolean isCompanion() { return false; }
 }
