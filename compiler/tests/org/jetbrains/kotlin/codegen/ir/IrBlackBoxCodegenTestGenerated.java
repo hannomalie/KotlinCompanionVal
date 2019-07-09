@@ -4423,6 +4423,11 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
         public void testShadowedCompanionFieldInClasses() throws Exception {
             runTest("compiler/testData/codegen/box/companionval/ShadowedCompanionFieldInClasses.kt");
         }
+
+        @TestMetadata("TopLevel.kt")
+        public void testTopLevel() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/TopLevel.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/compatibility")

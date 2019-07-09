@@ -7,7 +7,9 @@ class CustomToString<T> {
     fun T.customToString() = "custom:" + this.toString()
 }
 
-class Foo(val someString: String, companion val customToString: CustomToString<String> = CustomToString()) {
+public companion val customToString: CustomToString<String> = CustomToString()
+
+class Foo(val someString: String) {
     fun retrieveCustomToString() : String = someString.customToString()
 }
 

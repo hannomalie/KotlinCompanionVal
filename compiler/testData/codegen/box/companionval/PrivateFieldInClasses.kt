@@ -1,6 +1,5 @@
 // TARGET_BACKEND: JVM
 // WITH_RUNTIME
-// FILE: CompanionValAsFieldInClasses.kt
 
 package com.companionval
 

@@ -32,7 +32,9 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.impl.*;
 import org.jetbrains.kotlin.diagnostics.Errors;
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation;
 import org.jetbrains.kotlin.lexer.KtTokens;
+import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.psi.*;
 import org.jetbrains.kotlin.psi.psiUtil.PsiUtilsKt;
 import org.jetbrains.kotlin.resolve.calls.CallResolver;
@@ -45,6 +47,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.DescriptorUtilsKt;
 import org.jetbrains.kotlin.resolve.lazy.ForceResolveUtil;
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor;
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassMemberScope;
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyPackageDescriptor;
 import org.jetbrains.kotlin.resolve.multiplatform.ExpectedActualResolver;
 import org.jetbrains.kotlin.resolve.scopes.*;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver;
@@ -946,6 +949,21 @@ public class BodyResolver {
             if (descriptor instanceof LazyClassDescriptor) {
                 LazyClassDescriptor lazyClassDescriptor = (LazyClassDescriptor) descriptor;
                 MemberScope memberScope = lazyClassDescriptor.getUnsubstitutedMemberScope();
+
+                if(lazyClassDescriptor.getContainingDeclaration() instanceof LazyPackageDescriptor) {
+
+                    LazyPackageDescriptor packageDescriptor = (LazyPackageDescriptor) lazyClassDescriptor.getContainingDeclaration();
+                    for (Name name : packageDescriptor.getMemberScope().getVariableNames()) {
+                        Collection<? extends PropertyDescriptor> properties =
+                                packageDescriptor.getMemberScope().getContributedVariables(name, NoLookupLocation.FROM_IDE);
+                        for (PropertyDescriptor it : properties) {
+                            if (it.isCompanion()) {
+                                scope = getScopeForCompanionValue(scope, it);
+                            }
+                        }
+                    }
+                }
+
                 if (memberScope instanceof LazyClassMemberScope) {
                     LazyClassMemberScope lazyClassMemberScope = (LazyClassMemberScope) memberScope;
                     ClassConstructorDescriptor constructor = lazyClassMemberScope.getPrimaryConstructor();
@@ -953,7 +971,7 @@ public class BodyResolver {
                         List<ValueParameterDescriptor> members = constructor.getValueParameters();
                         for (ValueParameterDescriptor member : members) {
                             if (member.isCompanion()) {
-                                scope = getScopeForCompanionValue(functionDescriptor, scope, member);
+                                scope = getScopeForCompanionValue(scope, member);
                             }
                         }
                     }
@@ -963,7 +981,7 @@ public class BodyResolver {
                     if((member instanceof PropertyDescriptor)) {
                         PropertyDescriptor propertyDescriptor = (PropertyDescriptor) member;
                         if(propertyDescriptor.isCompanion()) {
-                            scope = getScopeForCompanionValue(functionDescriptor, scope, propertyDescriptor, lazyClassDescriptor);
+                            scope = getScopeForCompanionValue(scope, propertyDescriptor);
                         }
                     }
                 }
@@ -998,7 +1016,7 @@ public class BodyResolver {
         }
         for (ValueParameterDescriptor valueParameterDescriptor : valueParameterDescriptors) {
             if (valueParameterDescriptor.isCompanion()) {
-                innerScope = getScopeForCompanionValue(functionDescriptor, innerScope, valueParameterDescriptor);
+                innerScope = getScopeForCompanionValue(innerScope, valueParameterDescriptor);
             }
         }
         DataFlowInfo dataFlowInfo = null;
@@ -1017,7 +1035,6 @@ public class BodyResolver {
 
     @NotNull
     private LexicalScope getScopeForCompanionValue(
-            @NotNull FunctionDescriptor functionDescriptor,
             LexicalScope innerScope,
             ValueParameterDescriptor valueParameterDescriptor
     ) {
@@ -1047,10 +1064,8 @@ public class BodyResolver {
 
     @NotNull
     private LexicalScope getScopeForCompanionValue(
-            @NotNull FunctionDescriptor functionDescriptor,
             LexicalScope innerScope,
-            PropertyDescriptor memberDescriptor,
-            LazyClassDescriptor lazyClassDescriptor
+            PropertyDescriptor memberDescriptor
     ) {
         AnonymousFunctionDescriptor ownerDescriptor = new AnonymousFunctionDescriptor(memberDescriptor,
                                                                                       memberDescriptor.getAnnotations(),

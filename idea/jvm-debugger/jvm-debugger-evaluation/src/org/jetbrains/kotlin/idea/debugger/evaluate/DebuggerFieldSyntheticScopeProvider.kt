@@ -202,5 +202,6 @@ internal class DebuggerFieldPropertyDescriptor(
     /*isExpect = */false,
     /*isActual = */false,
     /*isExternal = */false,
-    /*isDelegated = */false, isCompanion
+    /*isDelegated = */false,
+    /*isCompanion =*/false
 )

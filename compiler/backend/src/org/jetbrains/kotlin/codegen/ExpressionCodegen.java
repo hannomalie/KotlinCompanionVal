@@ -13,6 +13,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.Stack;
+import com.intellij.util.io.StringRef;
 import kotlin.Pair;
 import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
@@ -49,6 +50,8 @@ import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor;
 import org.jetbrains.kotlin.descriptors.impl.SyntheticFieldDescriptor;
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor;
 import org.jetbrains.kotlin.diagnostics.Errors;
+import org.jetbrains.kotlin.fileClasses.JvmFileClassInfo;
+import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.load.java.JvmAbi;
 import org.jetbrains.kotlin.load.java.sam.SamConstructorDescriptor;
@@ -74,12 +77,10 @@ import org.jetbrains.kotlin.resolve.jvm.*;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOriginKt;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature;
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyPackageDescriptor;
 import org.jetbrains.kotlin.resolve.scopes.receivers.*;
 import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor;
-import org.jetbrains.kotlin.types.KotlinType;
-import org.jetbrains.kotlin.types.SimpleType;
-import org.jetbrains.kotlin.types.TypeProjection;
-import org.jetbrains.kotlin.types.TypeUtils;
+import org.jetbrains.kotlin.types.*;
 import org.jetbrains.kotlin.types.expressions.DoubleColonLHS;
 import org.jetbrains.kotlin.types.typesApproximation.CapturedTypeApproximationKt;
 import org.jetbrains.kotlin.util.OperatorNameConventions;
@@ -2817,15 +2818,37 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             }
         } else if (parameter.getContainingDeclaration().getContainingDeclaration() instanceof PropertyDescriptor) {
             PropertyDescriptor propertyDescriptor = (PropertyDescriptor) parameter.getContainingDeclaration().getContainingDeclaration();
-            ClassDescriptor owner = (ClassDescriptor) propertyDescriptor.getContainingDeclaration();
 
-            if(propertyDescriptor.isCompanion()) {
-                return StackValue.field(
-                        typeMapper.mapType(propertyDescriptor),
-                        typeMapper.mapType(owner),
-                        propertyDescriptor.getName().asString(),
-                        false,
-                        StackValue.LOCAL_0);
+            if(propertyDescriptor.getContainingDeclaration() instanceof ClassDescriptor) {
+                ClassDescriptor owner = (ClassDescriptor) propertyDescriptor.getContainingDeclaration();
+
+                if(propertyDescriptor.isCompanion()) {
+                    return StackValue.field(
+                            typeMapper.mapType(propertyDescriptor),
+                            typeMapper.mapType(owner),
+                            propertyDescriptor.getName().asString(),
+                            false,
+                            StackValue.LOCAL_0);
+                }
+            } else if(propertyDescriptor.getContainingDeclaration() instanceof LazyPackageDescriptor) {
+                LazyPackageDescriptor owner = (LazyPackageDescriptor) propertyDescriptor.getContainingDeclaration();
+                KtProperty declaredProperty =
+                        new ArrayList<>(owner.getDeclarationProvider().getPropertyDeclarations(propertyDescriptor.getName())).get(0);
+
+                JvmFileClassInfo fileClassInfo = JvmFileClassUtil.getFileClassInfoNoResolve(declaredProperty.getContainingKtFile());
+
+                Type fileClassType = AsmUtil.asmTypeByFqNameWithoutInnerClasses(fileClassInfo.getFileClassFqName());
+
+
+                if(propertyDescriptor.isCompanion()) {
+                    return intermediateValueForProperty(propertyDescriptor, false, null, StackValue.LOCAL_0);
+                    //return StackValue.field(
+                    //        typeMapper.mapType(propertyDescriptor),
+                    //        fileClassType,
+                    //        propertyDescriptor.getName().asString(),
+                    //        true,
+                    //        StackValue.LOCAL_0);
+                }
             }
         }
 
