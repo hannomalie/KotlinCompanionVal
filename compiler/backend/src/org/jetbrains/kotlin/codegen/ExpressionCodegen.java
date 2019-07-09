@@ -2819,42 +2819,10 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         } else if (parameter.getContainingDeclaration().getContainingDeclaration() instanceof PropertyDescriptor) {
             PropertyDescriptor propertyDescriptor = (PropertyDescriptor) parameter.getContainingDeclaration().getContainingDeclaration();
 
-            if(propertyDescriptor.getContainingDeclaration() instanceof ClassDescriptor) {
-                ClassDescriptor owner = (ClassDescriptor) propertyDescriptor.getContainingDeclaration();
-
-                if(propertyDescriptor.isCompanion()) {
-                    return StackValue.field(
-                            typeMapper.mapType(propertyDescriptor),
-                            typeMapper.mapType(owner),
-                            propertyDescriptor.getName().asString(),
-                            false,
-                            StackValue.LOCAL_0);
-                }
-            } else if(propertyDescriptor.getContainingDeclaration() instanceof LazyPackageDescriptor) {
-                LazyPackageDescriptor owner = (LazyPackageDescriptor) propertyDescriptor.getContainingDeclaration();
-                KtProperty declaredProperty =
-                        new ArrayList<>(owner.getDeclarationProvider().getPropertyDeclarations(propertyDescriptor.getName())).get(0);
-
-                JvmFileClassInfo fileClassInfo = JvmFileClassUtil.getFileClassInfoNoResolve(declaredProperty.getContainingKtFile());
-
-                Type fileClassType = AsmUtil.asmTypeByFqNameWithoutInnerClasses(fileClassInfo.getFileClassFqName());
-
-
-                if(propertyDescriptor.isCompanion()) {
-                    return intermediateValueForProperty(propertyDescriptor, false, null, StackValue.LOCAL_0);
-                    //return StackValue.field(
-                    //        typeMapper.mapType(propertyDescriptor),
-                    //        fileClassType,
-                    //        propertyDescriptor.getName().asString(),
-                    //        true,
-                    //        StackValue.LOCAL_0);
-                }
+            if(propertyDescriptor.isCompanion()) {
+                return intermediateValueForProperty(propertyDescriptor, false, null, StackValue.LOCAL_0);
             }
         }
-
-        //throw new IllegalStateException(parameter.toString() +
-        //                                "\n" + parameter.getContainingDeclaration().toString()+
-        //                                "\n" + parameter.getContainingDeclaration().getContainingDeclaration().toString());
 
         StackValue result = context.generateReceiver(descriptor, state, false);
         if (result == null) {
