@@ -7,8 +7,11 @@ class Printer<T> {
     fun T.customToString() = "printed:" + this.toString()
 }
 
-class Foo(val someString: String) {
-    private companion val printer: Printer<String> = Printer()
+open class Base(val someString: String) {
+    protected companion val printer: Printer<String> = Printer()
+}
+
+class Foo(someString: String): Base(someString) {
     fun retrieveCustomToString() : String = someString.customToString()
 }
 

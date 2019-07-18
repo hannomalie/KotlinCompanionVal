@@ -3,13 +3,13 @@
 
 package com.companionval
 
-class CustomToString<T>(val prefix: String = "custom:") {
+class Printer<T>(val prefix: String = "custom:") {
     fun T.customToString() = prefix + this.toString()
 }
 
 class Foo(val someString: String) {
-    private companion val customToString: CustomToString<String> = CustomToString()
-    fun retrieveCustomToString(companion anotherCustomToString: CustomToString<String> = CustomToString("anotherCustom:")) : String {
+    private companion val printer: Printer<String> = Printer()
+    fun retrieveCustomToString(companion anotherPrinter: Printer<String> = Printer("anotherCustom:")) : String {
         return someString.customToString()
     }
 }

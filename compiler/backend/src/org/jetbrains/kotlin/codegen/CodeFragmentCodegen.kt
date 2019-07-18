@@ -20,11 +20,12 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin.Companion.NO_ORIGIN
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.OtherOrigin
+import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.org.objectweb.asm.Opcodes.*
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
-import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension.Context as InCo
 
 class CodeFragmentCodegenInfo(
     val classDescriptor: ClassDescriptor,
@@ -128,7 +129,9 @@ class CodeFragmentCodegen private constructor(
                     return super.generateThisOrOuter(calleeContainingClass, isSuper)
                 }
 
-                override fun generateExtensionReceiver(descriptor: CallableDescriptor): StackValue {
+                override fun generateExtensionReceiver(
+                    descriptor: CallableDescriptor
+                ): StackValue {
                     val receiverParameter = descriptor.extensionReceiverParameter
                     if (receiverParameter != null) {
                         findCapturedValue(receiverParameter)?.let { return it }

@@ -18,10 +18,7 @@ package org.jetbrains.kotlin.resolve
 
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.builtins.getReceiverTypeFromFunctionType
-import org.jetbrains.kotlin.builtins.getValueParameterTypesFromFunctionType
-import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
+import org.jetbrains.kotlin.builtins.*
 import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
@@ -32,12 +29,10 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationSplitter
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.impl.ClassConstructorDescriptorImpl
-import org.jetbrains.kotlin.descriptors.impl.FunctionExpressionDescriptor
-import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
-import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.*
 import org.jetbrains.kotlin.diagnostics.Errors.*
 import org.jetbrains.kotlin.diagnostics.PsiDiagnosticUtils
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
@@ -53,10 +48,9 @@ import org.jetbrains.kotlin.resolve.calls.DslMarkerUtils
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 import org.jetbrains.kotlin.resolve.calls.util.createValueParametersForInvokeInFunctionType
 import org.jetbrains.kotlin.resolve.lazy.ForceResolveUtil
-import org.jetbrains.kotlin.resolve.scopes.LexicalScope
-import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
-import org.jetbrains.kotlin.resolve.scopes.LexicalWritableScope
-import org.jetbrains.kotlin.resolve.scopes.TraceBasedLocalRedeclarationChecker
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassMemberScope
+import org.jetbrains.kotlin.resolve.scopes.*
+import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver
 import org.jetbrains.kotlin.resolve.source.toSourceElement
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.ErrorUtils
@@ -69,6 +63,8 @@ import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.isFunctionEx
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.isFunctionLiteral
 import org.jetbrains.kotlin.types.typeUtil.replaceAnnotations
 import org.jetbrains.kotlin.util.AstLoadingFilter
+import org.jetbrains.kotlin.util.slicedMap.BasicWritableSlice
+import org.jetbrains.kotlin.util.slicedMap.WritableSlice
 import java.util.*
 
 class FunctionDescriptorResolver(
@@ -97,6 +93,78 @@ class FunctionDescriptorResolver(
         )
     }
 
+    private fun getScopeForCompanionValue(
+        innerScope: LexicalScope,
+        valueParameterDescriptor: ValueParameterDescriptor
+    ): LexicalScope {
+        var innerScope = innerScope
+        val ownerDescriptor = AnonymousFunctionDescriptor(
+            valueParameterDescriptor,
+            valueParameterDescriptor.annotations,
+            CallableMemberDescriptor.Kind.DECLARATION,
+            valueParameterDescriptor.source,
+            false
+        )
+        val extensionReceiver = ExtensionReceiver(
+            ownerDescriptor,
+            valueParameterDescriptor.type,
+            null
+        )
+
+        val extensionReceiverParamDescriptor = ReceiverParameterDescriptorImpl(
+            ownerDescriptor,
+            extensionReceiver,
+            ownerDescriptor.annotations
+        )
+
+        ownerDescriptor.initialize(
+            extensionReceiverParamDescriptor, null,
+            valueParameterDescriptor.typeParameters,
+            valueParameterDescriptor.valueParameters,
+            valueParameterDescriptor.returnType,
+            Modality.FINAL,
+            valueParameterDescriptor.visibility
+        )
+        innerScope =
+            LexicalScopeImpl(innerScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
+        return innerScope
+    }
+    private fun getScopeForCompanionValue(
+        innerScope: LexicalScope,
+        memberDescriptor: PropertyDescriptor
+    ): LexicalScope {
+        var innerScope = innerScope
+        val ownerDescriptor = AnonymousFunctionDescriptor(
+            memberDescriptor,
+            memberDescriptor.annotations,
+            CallableMemberDescriptor.Kind.DECLARATION,
+            memberDescriptor.source,
+            false
+        )
+        val extensionReceiver = ExtensionReceiver(
+            ownerDescriptor,
+            memberDescriptor.type,
+            null
+        )
+
+        val extensionReceiverParamDescriptor = ReceiverParameterDescriptorImpl(
+            ownerDescriptor,
+            extensionReceiver,
+            ownerDescriptor.annotations
+        )
+
+        ownerDescriptor.initialize(
+            extensionReceiverParamDescriptor, null,
+            memberDescriptor.typeParameters,
+            memberDescriptor.valueParameters,
+            memberDescriptor.returnType,
+            Modality.FINAL,
+            memberDescriptor.visibility
+        )
+        innerScope =
+            LexicalScopeImpl(innerScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
+        return innerScope
+    }
 
     fun resolveFunctionExpressionDescriptor(
         containingDescriptor: DeclarationDescriptor,
@@ -173,13 +241,41 @@ class FunctionDescriptorResolver(
         expectedFunctionType: KotlinType,
         dataFlowInfo: DataFlowInfo
     ) {
+
+        var wrappedScope = scope
+
+        if(runCatching { expectedFunctionType.isExtensionFunctionType }.getOrElse { false }) {
+
+            val extensionReceiver = expectedFunctionType.getReceiverType()
+
+            extensionReceiver?.let {
+                val memberScope = it.memberScope
+                if(memberScope is LazyClassMemberScope) {
+
+                    for (param in memberScope.getPrimaryConstructor()?.valueParameters ?: emptyList()) {
+                        if (param.isCompanion) {
+                            wrappedScope = getScopeForCompanionValue(wrappedScope, param)
+                        }
+                    }
+                    for (propertyName in memberScope.getVariableNames()) {
+                        for (propertyDescriptor in memberScope
+                            .getContributedVariables(propertyName, NoLookupLocation.FROM_IDE)) {
+                            if (propertyDescriptor.isCompanion) {
+                                wrappedScope = getScopeForCompanionValue(wrappedScope, propertyDescriptor)
+                            }
+
+                        }
+                    }
+
+                }
+            }
+        }
         val headerScope = LexicalWritableScope(
-            scope, functionDescriptor, true,
+            wrappedScope, functionDescriptor, true,
             TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.FUNCTION_HEADER
         )
-
         val typeParameterDescriptors =
-            descriptorResolver.resolveTypeParametersForDescriptor(functionDescriptor, headerScope, scope, function.typeParameters, trace)
+            descriptorResolver.resolveTypeParametersForDescriptor(functionDescriptor, headerScope, wrappedScope, function.typeParameters, trace)
         descriptorResolver.resolveGenericBounds(function, functionDescriptor, headerScope, typeParameterDescriptors, trace)
 
         val receiverTypeRef = function.receiverTypeReference
@@ -204,7 +300,7 @@ class FunctionDescriptorResolver(
             trace.bindingContext, container
         )
 
-        val contractProvider = getContractProvider(functionDescriptor, trace, scope, dataFlowInfo, function)
+        val contractProvider = getContractProvider(functionDescriptor, trace, wrappedScope, dataFlowInfo, function)
         val userData = mutableMapOf<CallableDescriptor.UserDataKey<*>, Any>().apply {
             if (contractProvider != null) {
                 put(ContractProviderKey, contractProvider)

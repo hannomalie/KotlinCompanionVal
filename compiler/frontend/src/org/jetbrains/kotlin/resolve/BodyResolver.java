@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.impl.*;
 import org.jetbrains.kotlin.diagnostics.Errors;
+import org.jetbrains.kotlin.incremental.components.LookupLocation;
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.name.Name;
@@ -943,7 +944,26 @@ public class BodyResolver {
     ) {
         PreliminaryDeclarationVisitor.Companion.createForDeclaration(function, trace, languageVersionSettings);
         ReceiverParameterDescriptor receiverParameterDescriptor = functionDescriptor.getDispatchReceiverParameter();
-        if (receiverParameterDescriptor instanceof LazyClassReceiverParameterDescriptor) {
+        ReceiverParameterDescriptor extensionReceiverParameter = functionDescriptor.getExtensionReceiverParameter();
+
+        boolean isTopLevel = DescriptorUtils.isTopLevelDeclaration(functionDescriptor);
+
+        if(isTopLevel) {
+            if(functionDescriptor.getContainingDeclaration() instanceof LazyPackageDescriptor) {
+
+                LazyPackageDescriptor packageDescriptor = (LazyPackageDescriptor) functionDescriptor.getContainingDeclaration();
+                for (Name name : packageDescriptor.getMemberScope().getVariableNames()) {
+                    Collection<? extends PropertyDescriptor> properties =
+                            packageDescriptor.getMemberScope().getContributedVariables(name, NoLookupLocation.WHEN_GET_ALL_DESCRIPTORS);
+                    for (PropertyDescriptor it : properties) {
+                        if (it.isCompanion()) {
+                            scope = getScopeForCompanionValue(scope, it);
+
+                        }
+                    }
+                }
+            }
+        } else if (receiverParameterDescriptor instanceof LazyClassReceiverParameterDescriptor) {
             LazyClassReceiverParameterDescriptor lazyClassReceiverParameterDescriptor = (LazyClassReceiverParameterDescriptor) receiverParameterDescriptor;
             DeclarationDescriptor descriptor = lazyClassReceiverParameterDescriptor.getContainingDeclaration();
             if (descriptor instanceof LazyClassDescriptor) {
@@ -955,7 +975,7 @@ public class BodyResolver {
                     LazyPackageDescriptor packageDescriptor = (LazyPackageDescriptor) lazyClassDescriptor.getContainingDeclaration();
                     for (Name name : packageDescriptor.getMemberScope().getVariableNames()) {
                         Collection<? extends PropertyDescriptor> properties =
-                                packageDescriptor.getMemberScope().getContributedVariables(name, NoLookupLocation.FROM_IDE);
+                                packageDescriptor.getMemberScope().getContributedVariables(name, NoLookupLocation.WHEN_GET_ALL_DESCRIPTORS);
                         for (PropertyDescriptor it : properties) {
                             if (it.isCompanion()) {
                                 scope = getScopeForCompanionValue(scope, it);
@@ -977,12 +997,13 @@ public class BodyResolver {
                     }
                 }
 
-                for (CallableMemberDescriptor member : lazyClassDescriptor.getDeclaredCallableMembers()) {
-                    if((member instanceof PropertyDescriptor)) {
-                        PropertyDescriptor propertyDescriptor = (PropertyDescriptor) member;
+                for (Name propertyName : lazyClassDescriptor.getUnsubstitutedMemberScope().getVariableNames()) {
+                    for (PropertyDescriptor propertyDescriptor : lazyClassDescriptor.getUnsubstitutedMemberScope()
+                            .getContributedVariables(propertyName, NoLookupLocation.FROM_IDE)) {
                         if(propertyDescriptor.isCompanion()) {
                             scope = getScopeForCompanionValue(scope, propertyDescriptor);
                         }
+
                     }
                 }
             }
@@ -1014,6 +1035,8 @@ public class BodyResolver {
                 }
             }
         }
+
+
         for (ValueParameterDescriptor valueParameterDescriptor : valueParameterDescriptors) {
             if (valueParameterDescriptor.isCompanion()) {
                 innerScope = getScopeForCompanionValue(innerScope, valueParameterDescriptor);

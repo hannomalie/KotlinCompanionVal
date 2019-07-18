@@ -92,11 +92,10 @@ class CallExpressionResolver(
         checkArguments: CheckArgumentTypesMode,
         initialDataFlowInfoForArguments: DataFlowInfo
     ): Pair<Boolean, ResolvedCall<FunctionDescriptor>?> {
-        val results = callResolver.resolveFunctionCall(
-            BasicCallResolutionContext.create(
-                context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
-            )
+        val resolutionContext = BasicCallResolutionContext.create(
+            context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
         )
+        val results = callResolver.resolveFunctionCall(resolutionContext)
         return if (!results.isNothing)
             Pair(true, OverloadResolutionResultsUtil.getResultingCall(results, context))
         else
@@ -214,6 +213,7 @@ class CallExpressionResolver(
         val temporaryForFunction = TemporaryTraceAndCache.create(
             context, "trace to resolve as function call", callExpression
         )
+
         val (resolveResult, resolvedCall) = getResolvedCallForFunction(
             call,
             context.replaceTraceAndCache(temporaryForFunction),

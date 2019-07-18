@@ -13,7 +13,6 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.Stack;
-import com.intellij.util.io.StringRef;
 import kotlin.Pair;
 import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
@@ -50,8 +49,6 @@ import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor;
 import org.jetbrains.kotlin.descriptors.impl.SyntheticFieldDescriptor;
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor;
 import org.jetbrains.kotlin.diagnostics.Errors;
-import org.jetbrains.kotlin.fileClasses.JvmFileClassInfo;
-import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.load.java.JvmAbi;
 import org.jetbrains.kotlin.load.java.sam.SamConstructorDescriptor;
@@ -77,7 +74,6 @@ import org.jetbrains.kotlin.resolve.jvm.*;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOriginKt;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature;
-import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyPackageDescriptor;
 import org.jetbrains.kotlin.resolve.scopes.receivers.*;
 import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor;
 import org.jetbrains.kotlin.types.*;
@@ -2793,7 +2789,9 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
     }
 
     @NotNull
-    public StackValue generateExtensionReceiver(@NotNull CallableDescriptor descriptor) {
+    public StackValue generateExtensionReceiver(
+            @NotNull CallableDescriptor descriptor
+    ) {
         ParameterDescriptor parameter = descriptor.getExtensionReceiverParameter();
         if (descriptor.getContainingDeclaration() instanceof ValueParameterDescriptor &&
             ((ValueParameterDescriptor) (descriptor.getContainingDeclaration())).isCompanion()) {
@@ -2809,12 +2807,16 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             );
         } else if (parameter instanceof ValueParameterDescriptor) {
             if (((ValueParameterDescriptor) parameter).isCompanion()) {
+                CallableDescriptor primaryConstructorDescriptor = ((CallableDescriptor) parameter.getContainingDeclaration());
+                ClassDescriptor clazzDescriptor =
+                        (ClassDescriptor) primaryConstructorDescriptor.getContainingDeclaration();
                 return StackValue.field(
                         typeMapper.mapType(parameter),
-                        typeMapper.mapType(((CallableDescriptor) parameter.getContainingDeclaration()).getReturnType()),
+                        typeMapper.mapType(primaryConstructorDescriptor.getReturnType()),
                         parameter.getName().asString(),
                         false,
-                        StackValue.LOCAL_0);
+                        StackValue.local(myFrameMap.getCurrentSize()-1, typeMapper.mapType(primaryConstructorDescriptor.getReturnType())));
+                        //StackValue.LOCAL_0);
             }
         } else if (parameter.getContainingDeclaration().getContainingDeclaration() instanceof PropertyDescriptor) {
             PropertyDescriptor propertyDescriptor = (PropertyDescriptor) parameter.getContainingDeclaration().getContainingDeclaration();

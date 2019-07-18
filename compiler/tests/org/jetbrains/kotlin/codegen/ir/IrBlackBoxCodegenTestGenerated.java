@@ -4404,14 +4404,34 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/companionval"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JVM_IR, true);
         }
 
-        @TestMetadata("ConstructorArgInClasses.kt")
-        public void testConstructorArgInClasses() throws Exception {
-            runTest("compiler/testData/codegen/box/companionval/ConstructorArgInClasses.kt");
+        @TestMetadata("CompanionAsFunctionArg.kt")
+        public void testCompanionAsFunctionArg() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/CompanionAsFunctionArg.kt");
         }
 
-        @TestMetadata("InFunctions.kt")
-        public void testInFunctions() throws Exception {
-            runTest("compiler/testData/codegen/box/companionval/InFunctions.kt");
+        @TestMetadata("CompanionAsPrimaryConstructorProperty.kt")
+        public void testCompanionAsPrimaryConstructorProperty() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/CompanionAsPrimaryConstructorProperty.kt");
+        }
+
+        @TestMetadata("CompanionValAtTopLevel.kt")
+        public void testCompanionValAtTopLevel() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/CompanionValAtTopLevel.kt");
+        }
+
+        @TestMetadata("CompanionsUsedInLambda.kt")
+        public void testCompanionsUsedInLambda() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/CompanionsUsedInLambda.kt");
+        }
+
+        @TestMetadata("InheritedCompanionInDerivedClass.kt")
+        public void testInheritedCompanionInDerivedClass() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/InheritedCompanionInDerivedClass.kt");
+        }
+
+        @TestMetadata("MultipleCompanionsForLambdaScope.kt")
+        public void testMultipleCompanionsForLambdaScope() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/MultipleCompanionsForLambdaScope.kt");
         }
 
         @TestMetadata("PrivateFieldInClasses.kt")
@@ -4419,14 +4439,9 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
             runTest("compiler/testData/codegen/box/companionval/PrivateFieldInClasses.kt");
         }
 
-        @TestMetadata("ShadowedCompanionFieldInClasses.kt")
-        public void testShadowedCompanionFieldInClasses() throws Exception {
-            runTest("compiler/testData/codegen/box/companionval/ShadowedCompanionFieldInClasses.kt");
-        }
-
-        @TestMetadata("TopLevel.kt")
-        public void testTopLevel() throws Exception {
-            runTest("compiler/testData/codegen/box/companionval/TopLevel.kt");
+        @TestMetadata("ShadowedCompanionFieldInClass.kt")
+        public void testShadowedCompanionFieldInClass() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/ShadowedCompanionFieldInClass.kt");
         }
     }
 

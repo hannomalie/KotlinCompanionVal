@@ -9,14 +9,15 @@ import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.builtins.*
 import org.jetbrains.kotlin.config.LanguageFeature
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.diagnostics.Errors.*
 import org.jetbrains.kotlin.diagnostics.PsiDiagnosticUtils
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.checkReservedPrefixWord
 import org.jetbrains.kotlin.psi.psiUtil.checkReservedYieldBeforeLambda
@@ -30,7 +31,13 @@ import org.jetbrains.kotlin.resolve.calls.context.ContextDependency
 import org.jetbrains.kotlin.resolve.calls.inference.model.TypeVariableTypeConstructor
 import org.jetbrains.kotlin.resolve.checkers.UnderscoreChecker
 import org.jetbrains.kotlin.resolve.lazy.ForceResolveUtil
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassMemberScope
+import org.jetbrains.kotlin.resolve.scopes.LexicalScope
+import org.jetbrains.kotlin.resolve.scopes.LexicalScopeImpl
+import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
 import org.jetbrains.kotlin.resolve.scopes.LexicalWritableScope
+import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver
 import org.jetbrains.kotlin.resolve.source.toSourceElement
 import org.jetbrains.kotlin.types.CommonSupertypes
 import org.jetbrains.kotlin.types.KotlinType
@@ -139,21 +146,132 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         val functionTypeExpected = expectedType.isBuiltinFunctionalType()
         val suspendFunctionTypeExpected = expectedType.isSuspendFunctionType()
 
-        val functionDescriptor = createFunctionLiteralDescriptor(expression, context)
-        expression.valueParameters.forEach {
-            components.identifierChecker.checkDeclaration(it, context.trace)
-            UnderscoreChecker.checkNamed(it, context.trace, components.languageVersionSettings, allowSingleUnderscore = true)
+        var newContext = context
+        var newScope = context.scope
+        val functionDescriptor = createFunctionLiteralDescriptor(expression, newContext)
+
+        if(runCatching { expectedType.isExtensionFunctionType }.getOrElse { false }) {
+            val receiverDescriptor = functionDescriptor.extensionReceiverParameter
+            receiverDescriptor?.let { receiverDescriptor ->
+
+                val memberScope = receiverDescriptor.value.type.memberScope
+
+                if (memberScope is LazyClassMemberScope) {
+                    val constructor = memberScope.getPrimaryConstructor()
+                    if (constructor != null) {
+                        val members = constructor.valueParameters
+                        for (member in members) {
+                            if (member.isCompanion) {
+                                newScope = getScopeForCompanionValue(newScope, member)
+                            }
+                        }
+                    }
+                }
+                for (propertyName in memberScope.getVariableNames()) {
+                    for (propertyDescriptor in memberScope
+                        .getContributedVariables(propertyName, NoLookupLocation.FROM_IDE)) {
+                        if (propertyDescriptor.isCompanion) {
+                            newScope = getScopeForCompanionValue(newScope, propertyDescriptor)
+                        }
+
+                    }
+                }
+            }
+            newContext = ExpressionTypingContext.newContext(newContext.trace,
+                                                            newScope,
+                                                            newContext.dataFlowInfo,
+                                                            newContext.expectedType,
+                                                            newContext.languageVersionSettings,
+                                                            newContext.dataFlowValueFactory)
         }
-        val safeReturnType = computeReturnType(expression, context, functionDescriptor, functionTypeExpected)
+
+        expression.valueParameters.forEach {
+            components.identifierChecker.checkDeclaration(it, newContext.trace)
+            UnderscoreChecker.checkNamed(it, newContext.trace, components.languageVersionSettings, allowSingleUnderscore = true)
+        }
+        val safeReturnType = computeReturnType(expression, newContext, functionDescriptor, functionTypeExpected)
         functionDescriptor.setReturnType(safeReturnType)
 
         val resultType = functionDescriptor.createFunctionType(components.builtIns, suspendFunctionTypeExpected)!!
         if (functionTypeExpected) {
             // all checks were done before
-            return createTypeInfo(resultType, context)
+            return createTypeInfo(resultType, newContext)
         }
 
-        return components.dataFlowAnalyzer.createCheckedTypeInfo(resultType, context, expression)
+        return components.dataFlowAnalyzer.createCheckedTypeInfo(resultType, newContext, expression)
+    }
+
+    private fun getScopeForCompanionValue(
+        innerScope: LexicalScope,
+        valueParameterDescriptor: ValueParameterDescriptor
+    ): LexicalScope {
+        var innerScope = innerScope
+        val ownerDescriptor = AnonymousFunctionDescriptor(
+            valueParameterDescriptor,
+            valueParameterDescriptor.annotations,
+            CallableMemberDescriptor.Kind.DECLARATION,
+            valueParameterDescriptor.source,
+            false
+        )
+        val extensionReceiver = ExtensionReceiver(
+            ownerDescriptor,
+            valueParameterDescriptor.type,
+            null
+        )
+
+        val extensionReceiverParamDescriptor = ReceiverParameterDescriptorImpl(
+            ownerDescriptor,
+            extensionReceiver,
+            ownerDescriptor.annotations
+        )
+
+        ownerDescriptor.initialize(
+            extensionReceiverParamDescriptor, null,
+            valueParameterDescriptor.typeParameters,
+            valueParameterDescriptor.valueParameters,
+            valueParameterDescriptor.returnType,
+            Modality.FINAL,
+            valueParameterDescriptor.visibility
+        )
+        innerScope =
+            LexicalScopeImpl(innerScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
+        return innerScope
+    }
+    private fun getScopeForCompanionValue(
+        innerScope: LexicalScope,
+        memberDescriptor: PropertyDescriptor
+    ): LexicalScope {
+        var innerScope = innerScope
+        val ownerDescriptor = AnonymousFunctionDescriptor(
+            memberDescriptor,
+            memberDescriptor.annotations,
+            CallableMemberDescriptor.Kind.DECLARATION,
+            memberDescriptor.source,
+            false
+        )
+        val extensionReceiver = ExtensionReceiver(
+            ownerDescriptor,
+            memberDescriptor.type,
+            null
+        )
+
+        val extensionReceiverParamDescriptor = ReceiverParameterDescriptorImpl(
+            ownerDescriptor,
+            extensionReceiver,
+            ownerDescriptor.annotations
+        )
+
+        ownerDescriptor.initialize(
+            extensionReceiverParamDescriptor, null,
+            memberDescriptor.typeParameters,
+            memberDescriptor.valueParameters,
+            memberDescriptor.returnType,
+            Modality.FINAL,
+            memberDescriptor.visibility
+        )
+        innerScope =
+            LexicalScopeImpl(innerScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
+        return innerScope
     }
 
     private fun checkReservedYield(context: ExpressionTypingContext, expression: PsiElement) {
@@ -176,6 +294,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
             CallableMemberDescriptor.Kind.DECLARATION, functionLiteral.toSourceElement(),
             context.expectedType.isSuspendFunctionType()
         )
+
         components.functionDescriptorResolver.initializeFunctionDescriptorAndExplicitReturnType(
             context.scope.ownerDescriptor, context.scope, functionLiteral,
             functionDescriptor, context.trace, context.expectedType, context.dataFlowInfo
