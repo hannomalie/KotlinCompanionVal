@@ -241,7 +241,8 @@ class LocalVariableResolver(
             variable.isVar,
             hasDelegate,
             hasLateinit,
-            variable.toSourceElement()
+            variable.toSourceElement(),
+            variable.hasModifier(KtTokens.COMPANION_KEYWORD)
         )
         trace.record(BindingContext.VARIABLE, variable, variableDescriptor)
         return variableDescriptor

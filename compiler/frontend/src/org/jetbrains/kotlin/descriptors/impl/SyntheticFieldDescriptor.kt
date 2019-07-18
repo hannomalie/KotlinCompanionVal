@@ -31,7 +31,8 @@ class SyntheticFieldDescriptor private constructor(
 ) : LocalVariableDescriptor(
     accessorDescriptor, Annotations.EMPTY, SyntheticFieldDescriptor.NAME,
     propertyDescriptor.type, propertyDescriptor.isVar, false, false,
-    property.toSourceElement()
+    property.toSourceElement(), false
+
 ) {
 
     constructor(

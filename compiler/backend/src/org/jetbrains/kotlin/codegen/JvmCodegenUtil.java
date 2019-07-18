@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor;
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor;
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation;
 import org.jetbrains.kotlin.load.java.JvmAbi;
 import org.jetbrains.kotlin.load.java.descriptors.JavaCallableMemberDescriptor;
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor;
@@ -38,6 +39,8 @@ import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils;
 import org.jetbrains.kotlin.resolve.DescriptorUtils;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
 import org.jetbrains.kotlin.resolve.inline.InlineUtil;
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassMemberScope;
+import org.jetbrains.kotlin.resolve.scopes.MemberScope;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue;
 import org.jetbrains.kotlin.resolve.scopes.receivers.TransientReceiver;
 import org.jetbrains.kotlin.resolve.source.PsiSourceElement;
@@ -46,6 +49,8 @@ import org.jetbrains.kotlin.types.KotlinType;
 import org.jetbrains.kotlin.util.OperatorNameConventions;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.jetbrains.kotlin.codegen.coroutines.CoroutineCodegenUtilKt.SUSPEND_FUNCTION_CREATE_METHOD_NAME;
 import static org.jetbrains.kotlin.descriptors.ClassKind.ANNOTATION_CLASS;
@@ -88,7 +93,47 @@ public class JvmCodegenUtil {
         return closure.getCapturedOuterClassDescriptor() == null &&
                closure.getCapturedReceiverFromOuterContext() == null &&
                closure.getCaptureVariables().isEmpty() &&
+               !hasCompanionParameters(closure) &&
                !closure.isSuspend();
+    }
+    private static boolean hasCompanionParameters(@NotNull CalculatedClosure closure) {
+        DeclarationDescriptor declaration = closure.getClosureClass();
+        while (declaration != null) {
+            if (declaration instanceof FunctionDescriptor) {
+                List<ValueParameterDescriptor> parameters = ((FunctionDescriptor) declaration).getValueParameters();
+                for (ValueParameterDescriptor parameter : parameters) {
+                    if (parameter.isCompanion()) {
+                        return true;
+                    }
+                }
+                ReceiverParameterDescriptor extensionReceiver = ((FunctionDescriptor) declaration).getExtensionReceiverParameter();
+                if(extensionReceiver != null) {
+                    MemberScope memberScope = extensionReceiver.getType().getMemberScope();
+                    boolean receiverHasCompanions = memberScope.getVariableNames().stream().anyMatch((propertyName) -> {
+                        return new ArrayList<>(memberScope.getContributedVariables(propertyName, NoLookupLocation.FROM_IDE)).get(0).isCompanion();
+                    });
+                    if(receiverHasCompanions) {
+                        return true;
+                    }
+
+                    if (memberScope instanceof LazyClassMemberScope) {
+                        LazyClassMemberScope lazyClassMemberScope = (LazyClassMemberScope) memberScope;
+                        ClassConstructorDescriptor constructor = lazyClassMemberScope.getPrimaryConstructor();
+                        if (constructor != null) {
+                            boolean companionInPrimaryConstructorArgs = constructor.getValueParameters().stream().anyMatch(
+                                    ValueParameterDescriptor::isCompanion);
+                            receiverHasCompanions = receiverHasCompanions || companionInPrimaryConstructorArgs;
+                        }
+                    }
+
+                    if(receiverHasCompanions) {
+                        return true;
+                    }
+                }
+            }
+            declaration = declaration.getContainingDeclaration();
+        }
+        return false;
     }
 
     private static boolean isCallInsideSameClassAsFieldRepresentingProperty(

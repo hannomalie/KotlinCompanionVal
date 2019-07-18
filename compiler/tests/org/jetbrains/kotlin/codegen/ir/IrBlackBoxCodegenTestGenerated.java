@@ -4429,6 +4429,11 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
             runTest("compiler/testData/codegen/box/companionval/InheritedCompanionInDerivedClass.kt");
         }
 
+        @TestMetadata("LocalCompanionVal.kt")
+        public void testLocalCompanionVal() throws Exception {
+            runTest("compiler/testData/codegen/box/companionval/LocalCompanionVal.kt");
+        }
+
         @TestMetadata("MultipleCompanionsForLambdaScope.kt")
         public void testMultipleCompanionsForLambdaScope() throws Exception {
             runTest("compiler/testData/codegen/box/companionval/MultipleCompanionsForLambdaScope.kt");

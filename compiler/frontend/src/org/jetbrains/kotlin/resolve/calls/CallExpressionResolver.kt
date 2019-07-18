@@ -23,9 +23,11 @@ import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
+import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Errors.*
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
@@ -54,6 +56,9 @@ import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactory
 import org.jetbrains.kotlin.resolve.calls.util.CallMaker
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
+import org.jetbrains.kotlin.resolve.scopes.LexicalScope
+import org.jetbrains.kotlin.resolve.scopes.LexicalScopeImpl
+import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
 import org.jetbrains.kotlin.resolve.scopes.receivers.*
 import org.jetbrains.kotlin.types.ErrorUtils
 import org.jetbrains.kotlin.types.KotlinType
@@ -199,6 +204,42 @@ class CallExpressionResolver(
         return typeInfo
     }
 
+    private fun getScopeForCompanionValue(
+        innerScope: LexicalScope,
+        memberDescriptor: LocalVariableDescriptor
+    ): LexicalScope {
+        var innerScope = innerScope
+        val ownerDescriptor = AnonymousFunctionDescriptor(
+            memberDescriptor,
+            memberDescriptor.annotations,
+            CallableMemberDescriptor.Kind.DECLARATION,
+            memberDescriptor.source,
+            false
+        )
+        val extensionReceiver = ExtensionReceiver(
+            ownerDescriptor,
+            memberDescriptor.type,
+            null
+        )
+
+        val extensionReceiverParamDescriptor = ReceiverParameterDescriptorImpl(
+            ownerDescriptor,
+            extensionReceiver,
+            memberDescriptor.annotations
+        )
+
+        ownerDescriptor.initialize(
+            extensionReceiverParamDescriptor, null,
+            memberDescriptor.typeParameters,
+            memberDescriptor.valueParameters,
+            memberDescriptor.returnType,
+            Modality.FINAL,
+            memberDescriptor.visibility
+        )
+        innerScope =
+            LexicalScopeImpl(innerScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
+        return innerScope
+    }
     /**
      * Visits a call expression and its arguments.
      * Determines the result type and data flow information after the call.
@@ -210,13 +251,22 @@ class CallExpressionResolver(
     ): KotlinTypeInfo {
         val call = CallMaker.makeCall(receiver, callOperationNode, callExpression)
 
+        val descriptors = context.scope.getContributedDescriptors { _ -> true }
+
+        val localVarDescriptors = descriptors.filterIsInstance(LocalVariableDescriptor::class.java).filter { it.isCompanion }
+        var newScope = context.scope
+        for(localCompanion in localVarDescriptors) {
+            newScope = getScopeForCompanionValue(newScope, localCompanion)
+        }
+        val newContext = context.replaceScope(newScope)
+
         val temporaryForFunction = TemporaryTraceAndCache.create(
-            context, "trace to resolve as function call", callExpression
+            newContext, "trace to resolve as function call", callExpression
         )
 
         val (resolveResult, resolvedCall) = getResolvedCallForFunction(
             call,
-            context.replaceTraceAndCache(temporaryForFunction),
+            newContext.replaceTraceAndCache(temporaryForFunction),
             CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
             initialDataFlowInfoForArguments
         )
@@ -226,21 +276,21 @@ class CallExpressionResolver(
             if (callExpression.valueArgumentList == null && callExpression.lambdaArguments.isEmpty()) {
                 // there are only type arguments
                 val hasValueParameters = functionDescriptor == null || functionDescriptor.valueParameters.size > 0
-                context.trace.report(FUNCTION_CALL_EXPECTED.on(callExpression, callExpression, hasValueParameters))
+                newContext.trace.report(FUNCTION_CALL_EXPECTED.on(callExpression, callExpression, hasValueParameters))
             }
             if (functionDescriptor == null) {
-                return noTypeInfo(context)
+                return noTypeInfo(newContext)
             }
             if (functionDescriptor is ConstructorDescriptor) {
                 val constructedClass = functionDescriptor.constructedClass
-                if (DescriptorUtils.isAnnotationClass(constructedClass) && !canInstantiateAnnotationClass(callExpression, context.trace)) {
-                    context.trace.report(ANNOTATION_CLASS_CONSTRUCTOR_CALL.on(callExpression))
+                if (DescriptorUtils.isAnnotationClass(constructedClass) && !canInstantiateAnnotationClass(callExpression, newContext.trace)) {
+                    newContext.trace.report(ANNOTATION_CLASS_CONSTRUCTOR_CALL.on(callExpression))
                 }
                 if (DescriptorUtils.isEnumClass(constructedClass)) {
-                    context.trace.report(ENUM_CLASS_CONSTRUCTOR_CALL.on(callExpression))
+                    newContext.trace.report(ENUM_CLASS_CONSTRUCTOR_CALL.on(callExpression))
                 }
                 if (DescriptorUtils.isSealedClass(constructedClass)) {
-                    context.trace.report(SEALED_CLASS_CONSTRUCTOR_CALL.on(callExpression))
+                    newContext.trace.report(SEALED_CLASS_CONSTRUCTOR_CALL.on(callExpression))
                 }
             }
 
@@ -251,7 +301,7 @@ class CallExpressionResolver(
             var jumpFlowInfo = resultFlowInfo
             var jumpOutPossible = false
             for (argument in arguments) {
-                val argTypeInfo = context.trace.get(BindingContext.EXPRESSION_TYPE_INFO, argument.getArgumentExpression())
+                val argTypeInfo = newContext.trace.get(BindingContext.EXPRESSION_TYPE_INFO, argument.getArgumentExpression())
                 if (argTypeInfo != null && argTypeInfo.jumpOutPossible) {
                     jumpOutPossible = true
                     jumpFlowInfo = argTypeInfo.jumpFlowInfo
@@ -264,11 +314,11 @@ class CallExpressionResolver(
         val calleeExpression = callExpression.calleeExpression
         if (calleeExpression is KtSimpleNameExpression && callExpression.typeArgumentList == null) {
             val temporaryForVariable = TemporaryTraceAndCache.create(
-                context, "trace to resolve as variable with 'invoke' call", callExpression
+                newContext, "trace to resolve as variable with 'invoke' call", callExpression
             )
             val (notNothing, type) = getVariableType(
                 calleeExpression, receiver, callOperationNode,
-                context.replaceTraceAndCache(temporaryForVariable)
+                newContext.replaceTraceAndCache(temporaryForVariable)
             )
             val qualifier = temporaryForVariable.trace.get(BindingContext.QUALIFIER, calleeExpression)
             if (notNothing && (qualifier == null || qualifier !is PackageQualifier)) {
@@ -279,7 +329,7 @@ class CallExpressionResolver(
                 }
 
                 temporaryForVariable.commit()
-                context.trace.report(
+                newContext.trace.report(
                     FUNCTION_EXPECTED.on(
                         calleeExpression, calleeExpression,
                         type ?: ErrorUtils.createErrorType("")
@@ -287,16 +337,16 @@ class CallExpressionResolver(
                 )
                 argumentTypeResolver.analyzeArgumentsAndRecordTypes(
                     BasicCallResolutionContext.create(
-                        context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                        newContext, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
                         DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
                     ),
                     ResolveArgumentsMode.RESOLVE_FUNCTION_ARGUMENTS
                 )
-                return noTypeInfo(context)
+                return noTypeInfo(newContext)
             }
         }
         temporaryForFunction.commit()
-        return noTypeInfo(context)
+        return noTypeInfo(newContext)
     }
 
     private fun KtQualifiedExpression.elementChain(context: ExpressionTypingContext) =

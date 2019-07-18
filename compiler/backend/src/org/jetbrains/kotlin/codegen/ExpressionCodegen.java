@@ -2816,13 +2816,32 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
                         parameter.getName().asString(),
                         false,
                         StackValue.local(myFrameMap.getCurrentSize()-1, typeMapper.mapType(primaryConstructorDescriptor.getReturnType())));
-                        //StackValue.LOCAL_0);
             }
         } else if (parameter.getContainingDeclaration().getContainingDeclaration() instanceof PropertyDescriptor) {
             PropertyDescriptor propertyDescriptor = (PropertyDescriptor) parameter.getContainingDeclaration().getContainingDeclaration();
 
             if(propertyDescriptor.isCompanion()) {
                 return intermediateValueForProperty(propertyDescriptor, false, null, StackValue.LOCAL_0);
+            }
+        } else if (parameter.getContainingDeclaration().getContainingDeclaration() instanceof LocalVariableDescriptor) {
+            LocalVariableDescriptor localVariableDescriptor =
+                    (LocalVariableDescriptor) parameter.getContainingDeclaration().getContainingDeclaration();
+            if(parameter.getContainingDeclaration() instanceof FunctionDescriptor) {
+                FunctionDescriptor functionDescriptor = (FunctionDescriptor) parameter.getContainingDeclaration();
+                ReceiverParameterDescriptor extensionReceiver = functionDescriptor.getExtensionReceiverParameter();
+                if(extensionReceiver != null) {
+                    if(localVariableDescriptor.isCompanion()) {
+                        int localVariableIndex = lookupLocalIndex(localVariableDescriptor);
+                        if (localVariableIndex != -1) {
+                            KotlinType type = localVariableDescriptor.getReturnType();
+                            return StackValue.local(
+                                    localVariableIndex,
+                                    typeMapper.mapType(type),
+                                    type
+                            );
+                        }
+                    }
+                }
             }
         }
 

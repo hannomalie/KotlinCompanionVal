@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.types.TypeSubstitutor;
 public class LocalVariableDescriptor extends VariableDescriptorWithInitializerImpl implements VariableDescriptorWithAccessors {
     private final boolean isDelegated;
     private final boolean isLateInit;
+    private final boolean isCompanion;
     private LocalVariableAccessorDescriptor.Getter getter;
     private LocalVariableAccessorDescriptor.Setter setter;
 
@@ -38,11 +39,13 @@ public class LocalVariableDescriptor extends VariableDescriptorWithInitializerIm
             boolean mutable,
             boolean isDelegated,
             boolean isLateInit,
-            @NotNull SourceElement source
+            @NotNull SourceElement source,
+            boolean isCompanion
     ) {
         super(containingDeclaration, annotations, name, type, mutable, source);
         this.isDelegated = isDelegated;
         this.isLateInit = isLateInit;
+        this.isCompanion = isCompanion;
     }
 
     public LocalVariableDescriptor(
@@ -52,9 +55,10 @@ public class LocalVariableDescriptor extends VariableDescriptorWithInitializerIm
             @Nullable KotlinType type,
             boolean mutable,
             boolean isDelegated,
-            @NotNull SourceElement source
+            @NotNull SourceElement source,
+            boolean isCompanion
     ) {
-        this(containingDeclaration, annotations, name, type, mutable, isDelegated, false, source);
+        this(containingDeclaration, annotations, name, type, mutable, isDelegated, false, source, isCompanion);
     }
 
     public LocalVariableDescriptor(
@@ -64,7 +68,7 @@ public class LocalVariableDescriptor extends VariableDescriptorWithInitializerIm
             @Nullable KotlinType type,
             @NotNull SourceElement source
     ) {
-        this(containingDeclaration, annotations, name, type, false, false, false, source);
+        this(containingDeclaration, annotations, name, type, false, false, false, source, false);
     }
 
     @Override
@@ -118,5 +122,9 @@ public class LocalVariableDescriptor extends VariableDescriptorWithInitializerIm
     @Override
     public boolean isLateInit() {
         return isLateInit;
+    }
+
+    public boolean isCompanion() {
+        return isCompanion;
     }
 }
